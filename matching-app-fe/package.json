@@ -1,0 +1,85 @@
+{
+  "name": "matching-app-frontend",
+  "version": "1.0.0",
+  "description": "React frontend for MatchApp - A real-time location-based matching application",
+  "private": true,
+  "dependencies": {
+    "@googlemaps/js-api-loader": "^1.16.2",
+    "axios": "^1.5.0",
+    "country-telephone-data": "^0.6.3",
+    "framer-motion": "^12.23.22",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.545.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.5.0",
+    "react-modal": "^3.16.1",
+    "react-phone-input-2": "^2.15.1",
+    "react-router-dom": "^6.15.0",
+    "react-spinners": "^0.13.8",
+    "react-toastify": "^9.1.3",
+    "socket.io-client": "^4.5.4",
+    "styled-components": "^6.0.7",
+    "web-vitals": "^3.4.0",
+    "workbox-webpack-plugin": "^7.0.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "analyze": "npm run build && npx bundle-analyzer build/static/js/*.js",
+    "clean": "rm -rf node_modules package-lock.json build",
+    "serve": "serve -s build -l 3000",
+    "test:coverage": "react-scripts test --coverage --no-cache --watchAll=false",
+    "preview": "npm run build && npm run serve"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.4",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.5.1",
+    "react-scripts": "5.0.1",
+    "serve": "^14.2.1"
+  },
+  "proxy": "http://localhost:5000",
+  "keywords": [
+    "react",
+    "frontend",
+    "google-maps",
+    "socket.io",
+    "location-based",
+    "matching",
+    "real-time",
+    "mobile-first",
+    "responsive"
+  ],
+  "author": {
+    "name": "Your Name",
+    "email": "your.email@example.com"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/matching-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/matching-app/issues"
+  },
+  "homepage": "/"
+}

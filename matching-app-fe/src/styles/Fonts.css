@@ -1,0 +1,142 @@
+/* KeinannPOP Font Import and Configuration for Japanese Text */
+
+/* Import KeinannPOP font from Google Fonts or local files */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap');
+
+/* Alternative: If you have local KeinannPOP font files, use this instead:
+@font-face {
+  font-family: 'KeinannPOP';
+  src: url('/fonts/KeinannPOP-Regular.woff2') format('woff2'),
+       url('/fonts/KeinannPOP-Regular.woff') format('woff'),
+       url('/fonts/KeinannPOP-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'KeinannPOP';
+  src: url('/fonts/KeinannPOP-Bold.woff2') format('woff2'),
+       url('/fonts/KeinannPOP-Bold.woff') format('woff'),
+       url('/fonts/KeinannPOP-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+*/
+
+/* Japanese Font Stack - Fallback fonts for better Japanese text rendering */
+:root {
+  --japanese-font: 'Noto Sans JP', 'KeinannPOP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic', 'Meiryo', 'MS PGothic', sans-serif;
+  --japanese-font-heading: 'Noto Sans JP', 'KeinannPOP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic', 'Meiryo', 'MS PGothic', sans-serif;
+}
+
+/* Apply Japanese font to all Japanese text elements */
+body {
+  font-family: var(--japanese-font);
+}
+
+/* Japanese text specific classes */
+.japanese-text {
+  font-family: var(--japanese-font);
+  font-feature-settings: "palt" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.japanese-heading {
+  font-family: var(--japanese-font-heading);
+  font-weight: 600;
+  font-feature-settings: "palt" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Apply to specific elements that contain Japanese text */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--japanese-font-heading);
+}
+
+/* Auth components with Japanese text */
+.auth-header h1,
+.auth-header p,
+.auth-form label,
+.auth-footer p,
+.auth-link {
+  font-family: var(--japanese-font);
+}
+
+/* Button text */
+.btn {
+  font-family: var(--japanese-font);
+}
+
+/* Toast notifications */
+.Toastify__toast {
+  font-family: var(--japanese-font);
+}
+
+/* Form inputs */
+input, textarea, select {
+  font-family: var(--japanese-font);
+}
+
+/* Modal content */
+.modal-content {
+  font-family: var(--japanese-font);
+}
+
+/* User panel and other components */
+.user-panel,
+.info-item,
+.profile-content {
+  font-family: var(--japanese-font);
+}
+
+/* Responsive font sizes for Japanese text */
+@media (max-width: 768px) {
+  .japanese-text {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .japanese-heading {
+    font-size: 18px;
+    line-height: 1.4;
+  }
+}
+
+@media (min-width: 769px) {
+  .japanese-text {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  
+  .japanese-heading {
+    font-size: 20px;
+    line-height: 1.4;
+  }
+}
+
+/* Font weight variations for Japanese text */
+.japanese-light {
+  font-weight: 300;
+}
+
+.japanese-regular {
+  font-weight: 400;
+}
+
+.japanese-medium {
+  font-weight: 500;
+}
+
+.japanese-semibold {
+  font-weight: 600;
+}
+
+.japanese-bold {
+  font-weight: 700;
+}

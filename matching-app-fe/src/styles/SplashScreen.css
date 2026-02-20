@@ -1,0 +1,89 @@
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #4AC1E0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.splash-content {
+  text-align: center;
+  color: white;
+}
+
+.logo {
+  font-size: 80px;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.logo-icon {
+  display: inline-block;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.app-title {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: -1px;
+}
+
+.app-tagline {
+  font-size: 20px;
+  font-weight: 300;
+  opacity: 0.9;
+  margin-bottom: 40px;
+}
+
+.loading-indicator {
+  margin-top: 60px;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.loading-dots .dot {
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+}
+
+@media (max-width: 768px) {
+  .logo {
+    font-size: 60px;
+  }
+  
+  .app-title {
+    font-size: 36px;
+  }
+  
+  .app-tagline {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    font-size: 50px;
+  }
+  
+  .app-title {
+    font-size: 28px;
+  }
+  
+  .app-tagline {
+    font-size: 16px;
+  }
+}

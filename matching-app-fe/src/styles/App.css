@@ -1,0 +1,243 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Sans JP', 'KeinannPOP', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic', 'Meiryo', 'MS PGothic', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f8f9fa;
+  height: 100vh;
+  overflow: hidden;
+  font-feature-settings: "palt" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+}
+
+.App {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #f8f9fa;
+  color: #4AC1E0;
+  font-size: 18px;
+}
+
+/* Inline Icon Styles */
+.inline-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* Common Button Styles */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 500ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  min-height: 48px;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #4AC1E0;
+  color: white;
+  box-shadow: 0 2px 8px rgba(74, 193, 224, 0.3);
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #f54d6a;
+  box-shadow: 0 4px 12px rgba(245, 77, 106, 0.4);
+  transform: translateY(-1px);
+  transition: all 500ms ease;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #4AC1E0;
+  border: 1px solid #4AC1E0;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #f54d6a;
+  border-color: #f54d6a;
+  color: white;
+  transform: translateY(-1px);
+  transition: all 500ms ease;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #4AC1E0;
+  border: 1px solid #4AC1E0;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: #f54d6a;
+  color: white;
+  transition: all 500ms ease;
+}
+
+.btn-danger {
+  background: #ea4335;
+  color: white;
+  box-shadow: 0 2px 8px rgba(234, 67, 53, 0.3);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #d33b2c;
+  box-shadow: 0 4px 12px rgba(234, 67, 53, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background: #34a853;
+  color: white;
+  box-shadow: 0 2px 8px rgba(52, 168, 83, 0.3);
+}
+
+.btn-accept {
+  background: #34a853;
+  color: white;
+  box-shadow: 0 2px 8px rgba(52, 168, 83, 0.3);
+}
+
+.btn-decline {
+  background: #ea4335;
+  color: white;
+  box-shadow: 0 2px 8px rgba(234, 67, 53, 0.3);
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.btn-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Loading dots animation */
+.loading-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px 52px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: #ffffff;
+} 
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #4AC1E0;
+  box-shadow: 0 0 0 2px rgba(74, 193, 224, 0.1);
+}
+
+.form-group input.error,
+.form-group textarea.error,
+.form-group select.error {
+  border-color: #ea4335;
+}
+
+.error-message {
+  color: #ea4335;
+  font-size: 14px;
+  margin-top: 8px;
+  display: block;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .btn {
+    padding: 16px ;
+    font-size: 16px;
+    min-height: 45px;
+  }
+  
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    padding: 16px,;
+    font-size: 16px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
