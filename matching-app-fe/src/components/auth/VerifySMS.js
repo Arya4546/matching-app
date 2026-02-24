@@ -175,6 +175,12 @@ const VerifySMS = () => {
           ></motion.div>
           <h1>認証コードを入力</h1>
           <p>6桁の認証コードを入力してください</p>
+          {pendingVerification?.smsCode && (
+            <div className="dev-otp-notice">
+              <Lightbulb size={16} />
+              <span>開発用コード: <strong>{pendingVerification.smsCode}</strong></span>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
@@ -196,9 +202,8 @@ const VerifySMS = () => {
                   onChange={(e) => handleCodeChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   onPaste={handlePaste}
-                  className={`verification-input ${error ? "error" : ""} ${
-                    digit ? "filled" : ""
-                  }`}
+                  className={`verification-input ${error ? "error" : ""} ${digit ? "filled" : ""
+                    }`}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.1 * index, duration: 0.3 }}

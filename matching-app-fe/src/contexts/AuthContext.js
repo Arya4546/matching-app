@@ -82,7 +82,8 @@ export const AuthProvider = ({ children }) => {
       setPendingVerification({
         userId: response.data.userId,
         phoneNumber: response.data.phoneNumber,
-        type: 'register'
+        type: 'register',
+        smsCode: response.data.smsCode
       });
 
       toast.success('認証コードをあなたの電話に送信しました');
@@ -106,7 +107,8 @@ export const AuthProvider = ({ children }) => {
       setPendingVerification({
         userId: response.data.userId,
         phoneNumber: response.data.phoneNumber,
-        type: 'login'
+        type: 'login',
+        smsCode: response.data.smsCode
       });
 
       toast.success('認証コードをあなたの電話に送信しました');

@@ -96,7 +96,8 @@ const register = async (req, res) => {
       userId: user._id,
       phoneNumber: user.phoneNumber,
       isNewUser: true,
-      requiresVerification: true
+      requiresVerification: true,
+      smsCode: process.env.NODE_ENV === 'development' ? user.smsCode : undefined
     });
   } catch (error) {
     console.error('Registration error:', error);
@@ -245,7 +246,8 @@ const login = async (req, res) => {
       userId: user._id,
       phoneNumber: user.phoneNumber,
       isNewUser: false,
-      requiresVerification: true
+      requiresVerification: true,
+      smsCode: process.env.NODE_ENV === 'development' ? user.smsCode : undefined
     });
   } catch (error) {
     console.error('Login error:', error);
