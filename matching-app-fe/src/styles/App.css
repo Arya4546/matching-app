@@ -27,7 +27,7 @@ body {
   justify-content: center;
   height: 100vh;
   background: #f8f9fa;
-  color: #4AC1E0;
+  color: #00C194;
   font-size: 18px;
 }
 
@@ -47,7 +47,7 @@ body {
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 500ms ease;
+  transition: all 300ms ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -62,46 +62,44 @@ body {
 }
 
 .btn-primary {
-  background: #4AC1E0;
+  background: #00C194;
   color: white;
-  box-shadow: 0 2px 8px rgba(74, 193, 224, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 193, 148, 0.25);
   width: 100%;
   padding: 12px 24px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #f54d6a;
-  box-shadow: 0 4px 12px rgba(245, 77, 106, 0.4);
-  transform: translateY(-1px);
-  transition: all 500ms ease;
+  background: #00AB84;
+  box-shadow: 0 10px 25px rgba(0, 193, 148, 0.35);
+  transform: translateY(-2px);
 }
 
 .btn-secondary {
   background: #ffffff;
-  color: #4AC1E0;
-  border: 1px solid #4AC1E0;
+  color: #00C194;
+  border: 1px solid #00C194;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #f54d6a;
-  border-color: #f54d6a;
-  color: white;
-  transform: translateY(-1px);
-  transition: all 500ms ease;
+  background: #f8fafc;
+  border-color: #00AB84;
+  color: #00AB84;
+  transform: translateY(-2px);
 }
 
 .btn-outline {
   background: transparent;
-  color: #4AC1E0;
-  border: 1px solid #4AC1E0;
+  color: #00C194;
+  border: 1px solid #00C194;
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: #f54d6a;
-  color: white;
-  transition: all 500ms ease;
+  background: rgba(0, 193, 148, 0.05);
+  border-color: #00AB84;
+  color: #00AB84;
 }
 
 .btn-danger {
@@ -155,8 +153,13 @@ body {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Loading dots animation */
@@ -194,14 +197,14 @@ body {
   font-size: 16px;
   transition: all 0.3s ease;
   background: #ffffff;
-} 
+}
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #4AC1E0;
-  box-shadow: 0 0 0 2px rgba(74, 193, 224, 0.1);
+  border-color: #00C194;
+  box-shadow: 0 0 0 2px rgba(0, 193, 148, 0.1);
 }
 
 .form-group input.error,
@@ -220,15 +223,15 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
   .btn {
-    padding: 16px ;
+    padding: 16px;
     font-size: 16px;
     min-height: 45px;
   }
-  
+
   .form-group input,
   .form-group textarea,
   .form-group select {
-    padding: 16px,;
+    padding: 16px, ;
     font-size: 16px;
   }
 }

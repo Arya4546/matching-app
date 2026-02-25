@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { MapPin, User, Search, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MapPin, User, Search, X, Camera } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-toastify";
 import { countries } from "../../utils/countries";
@@ -323,210 +323,195 @@ const Register = () => {
     <div className="auth-container">
       <motion.div
         className="auth-content"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+        initial={{ opacity: 0, scale: 0.97, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="auth-header">
-          <motion.div
-            className="auth-logo"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, delay: 0.3 }}
-          ></motion.div>
           <h1>アカウント作成</h1>
-          <p>マッチアプリ に参加して、近くの人とつながりを始めましょう</p>
+          <p>プロフィール作成を開始します</p>
         </div>
 
         <div className="step-indicator">
-          <div
-            className={`step ${step >= 1 ? "active" : ""} ${
-              step > 1 ? "completed" : ""
-            }`}
-          >
+          <div className={`step ${step >= 1 ? "active" : ""} ${step > 1 ? "completed" : ""}`}>
             <span>1</span>
             <label>基本情報</label>
           </div>
-          <div className="step-line"></div>
-          <div
-            className={`step ${step >= 2 ? "active" : ""} ${
-              step > 2 ? "completed" : ""
-            }`}
-          >
+          <div className={`step-line ${step > 1 ? "active" : ""}`}></div>
+          <div className={`step ${step >= 2 ? "active" : ""} ${step > 2 ? "completed" : ""}`}>
             <span>2</span>
-            <label>詳細</label>
+            <label>プロフィール</label>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {step === 1 && (
-            <motion.div
-              key="step1"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="form-group">
-                <label htmlFor="name">フルネーム</label>
-                <div className="name-input-container">
-                  <User className="user-icon" size={16} />
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+              >
+                <div className="form-group">
+                  <label htmlFor="name">ニックネーム</label>
                   <input
                     type="text"
                     id="name"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    placeholder="フルネームを入力してください"
+                    placeholder="ニックネームを入力してください"
                     className={errors.name ? "error" : ""}
                   />
+                  {errors.name && <span className="error-message">{errors.name}</span>}
                 </div>
-                {errors.name && (
-                  <span className="error-message">{errors.name}</span>
-                )}
-              </div>
-              <div className="form-group">
-                <label htmlFor="phoneNumber">電話番号</label>
-                <div className="phone-input-wrapper">
-                  <button
-                    type="button"
-                    className="phone-input-button"
-                    onClick={handleModalOpen}
-                  >
-                    <span className="country-code">
-                      {selectedCountry.dialCode}
-                    </span>
-                  </button>
-                  <input
-                    type="tel"
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handlePhoneChange}
-                    onKeyDown={(e) => {
-                      const allowedKeys = [
-                        "Backspace",
-                        "Delete",
-                        "Tab",
-                        "Escape",
-                        "Enter",
-                        "ArrowLeft",
-                        "ArrowRight",
-                        "ArrowUp",
-                        "ArrowDown",
-                      ];
-                      const isNumber = e.key >= "0" && e.key <= "9";
-                      const isAllowedKey = allowedKeys.includes(e.key);
 
-                      if (!isNumber && !isAllowedKey) {
-                        e.preventDefault();
-                      }
-                    }}
-                    placeholder={getPlaceholder(selectedCountry.code)}
-                    className={`phone-input ${
-                      errors.phoneNumber ? "error" : ""
-                    }`}
-                    inputMode="numeric"
-                    autoComplete="tel"
-                  />
-                </div>
-                {errors.phoneNumber && (
-                  <span className="error-message">{errors.phoneNumber}</span>
-                )}
-              </div>
-
-              <motion.button
-                type="button"
-                onClick={handleNext}
-                className="btn btn-primary btn-full"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                disabled={loading}
-              >
-                次のステップ
-              </motion.button>
-            </motion.div>
-          )}
-
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              
-
-              <div className="form-group">
-                {/* <label htmlFor="profilePhoto">プロフィール写真</label> */}
-                <div className="profile-avatar-section">
-                  <div className="avatar-container">
-                    <img
-                      src={
-                        formData.profilePhoto ||
-                        "https://randomuser.me/api/portraits/men/32.jpg"
-                      }
-                      alt="プロフィール"
-                      className="profile-avatar-large"
-                    />
+                <div className="form-group">
+                  <label htmlFor="phoneNumber">電話番号</label>
+                  <div className="phone-input-wrapper">
                     <button
                       type="button"
-                      className="change-photo-btn"
-                      onClick={handlePhotoClick}
-                      aria-label="写真を変更"
+                      className="phone-input-button"
+                      onClick={handleModalOpen}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        className="camera-icon"
-                      >
-                        <path d="M12 9a3 3 0 100 6 3 3 0 000-6z" />
-                        <path
-                          fillRule="evenodd"
-                          d="M9 2.25h6l1.5 2.25H19.5A2.25 2.25 0 0121.75 6.75v12a2.25 2.25 0 01-2.25 2.25h-15A2.25 2.25 0 012.25 18.75v-12A2.25 2.25 0 014.5 4.5h3.25L9 2.25zM12 15a4.5 4.5 0 100-9 4.5 4.5 0 000 9z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                      <span className="country-flag">{selectedCountry.flag}</span>
+                      <span className="country-code">{selectedCountry.dialCode}</span>
+                      <span className="chevron">▼</span>
                     </button>
                     <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoChange}
-                      style={{ display: "none" }}
-                      aria-label="プロフィール写真をアップロード"
+                      type="tel"
+                      id="phoneNumber"
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
+                      onChange={handlePhoneChange}
+                      onKeyDown={(e) => {
+                        const allowedKeys = [
+                          "Backspace", "Delete", "Tab", "Escape", "Enter",
+                          "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
+                        ];
+                        const isNumber = e.key >= "0" && e.key <= "9";
+                        const isAllowedKey = allowedKeys.includes(e.key);
+                        if (!isNumber && !isAllowedKey) {
+                          e.preventDefault();
+                        }
+                      }}
+                      placeholder={getPlaceholder(selectedCountry.code)}
+                      className="phone-input"
+                      inputMode="numeric"
+                      autoComplete="tel"
                     />
                   </div>
+                  {errors.phoneNumber && <span className="error-message">{errors.phoneNumber}</span>}
                 </div>
-              </div>
 
-              <motion.div className="form-group">
-                <div className="input-with-icon">
-                  <User size={18} className="input-icon" />
-                  <select
-                    id="gender"
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleInputChange}
-                    className={errors.gender ? "error" : ""}
-                  >
-                    <option value="" disabled>
-                      性別を選択
-                    </option>
-                    <option value="male">男性</option>
-                    <option value="female">女性</option>
-                    <option value="other">その他</option>
-                  </select>
-                </div>
-                {errors.gender && (
-                  <span className="error-message">{errors.gender}</span>
-                )}
+                <motion.button
+                  type="button"
+                  onClick={handleNext}
+                  className="btn btn-primary"
+                  whileHover={{ scale: 1.015 }}
+                  whileTap={{ scale: 0.985 }}
+                >
+                  次へ進む
+                </motion.button>
               </motion.div>
+            )}
 
-              <div className="form-group">
-                <div className="input-with-icon">
-                  <MapPin size={18} className="input-icon" />
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+              >
+                <div className="profile-avatar-section">
+                  {formData.profilePhoto ? (
+                    <div
+                      className="avatar-upload"
+                      onClick={handlePhotoClick}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <img
+                        src={formData.profilePhoto}
+                        className="avatar-image"
+                        alt="プロフィール"
+                      />
+                      <div className="avatar-overlay">
+                        <Camera size={20} />
+                        <span>変更する</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      className="avatar-icon-upload"
+                      onClick={handlePhotoClick}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <Camera size={28} />
+                      <span>写真を追加</span>
+                    </div>
+                  )}
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handlePhotoChange}
+                    hidden
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">性別</label>
+
+                  <div className="gender-container">
+                    <label
+                      className={`gender-option ${formData.gender === "male" ? "active" : ""
+                        }`}
+                    >
+                      <input
+                        type="radio"
+                        name="gender"
+                        value="male"
+                        checked={formData.gender === "male"}
+                        onChange={handleInputChange}
+                      />
+
+                      <div className="gender-content">
+                        <User size={20} />
+                        <span>男性</span>
+                      </div>
+                    </label>
+
+                    <label
+                      className={`gender-option ${formData.gender === "female" ? "active" : ""
+                        }`}
+                    >
+                      <input
+                        type="radio"
+                        name="gender"
+                        value="female"
+                        checked={formData.gender === "female"}
+                        onChange={handleInputChange}
+                      />
+
+                      <div className="gender-content">
+                        <User size={20} />
+                        <span>女性</span>
+                      </div>
+                    </label>
+                  </div>
+
+                  {errors.gender && (
+                    <span className="error-message">{errors.gender}</span>
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="address">住所</label>
                   <input
                     type="text"
                     id="address"
@@ -535,36 +520,31 @@ const Register = () => {
                     onChange={handleInputChange}
                     placeholder="住所を入力してください"
                     className={errors.address ? "error" : ""}
-                    maxLength="100"
                   />
+                  {errors.address && <span className="error-message">{errors.address}</span>}
                 </div>
-                {errors.address && (
-                  <span className="error-message">{errors.address}</span>
-                )}
-              </div>
 
-              <div className="form-actions">
-                {/* <motion.button
-                  type="button"
-                  onClick={handleBack}
-                  className="btn btn-secondary"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Back
-                </motion.button> */}
-                <motion.button
-                  type="submit"
-                  className="btn btn-primary"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  disabled={loading}
-                >
-                  {loading ? "アカウント作成中..." : "アカウント作成"}
-                </motion.button>
-              </div>
-            </motion.div>
-          )}
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="btn btn-secondary"
+                  >
+                    戻る
+                  </button>
+                  <motion.button
+                    type="submit"
+                    className="btn btn-primary"
+                    whileHover={{ scale: 1.015 }}
+                    whileTap={{ scale: 0.985 }}
+                    disabled={loading}
+                  >
+                    {loading ? "作成中..." : "アカウント作成"}
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </form>
 
         <div className="auth-footer">
@@ -577,60 +557,61 @@ const Register = () => {
         </div>
       </motion.div>
 
-      {/* Country Selection Modal */}
-      {isCountryModalOpen && (
-        <div className="country-modal-overlay">
-          <motion.div
-            className="country-modal"
-            ref={modalRef}
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          >
-            <div className="country-modal-header">
-              <h3>国を選択</h3>
-              <button className="modal-close-btn" onClick={handleModalClose}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="country-search-container">
-              <Search size={16} className="search-icon" />
-              <input
-                type="text"
-                placeholder="国を検索..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="country-search-input"
-                autoFocus
-              />
-            </div>
-
-            <div className="countries-list">
-              {filteredCountries.map((country) => (
-                <div
-                  key={country.code}
-                  className={`country-item ${
-                    selectedCountry?.code === country.code ? "selected" : ""
-                  }`}
-                  onClick={() => handleCountrySelect(country)}
-                >
-                  <span className="country-flag">{country.flag}</span>
-                  <span className="country-name">{country.name}</span>
-                  <span className="country-dial-code">{country.dialCode}</span>
-                </div>
-              ))}
-            </div>
-
-            {filteredCountries.length === 0 && (
-              <div className="no-results">
-                <p>検索結果が見つかりません</p>
+      <AnimatePresence>
+        {isCountryModalOpen && (
+          <div className="country-modal-overlay" onClick={handleModalClose}>
+            <motion.div
+              className="country-modal"
+              ref={modalRef}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 32, stiffness: 350 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="country-modal-header">
+                <h3>国を選択</h3>
+                <button className="modal-close-btn" onClick={handleModalClose}>
+                  <X size={18} />
+                </button>
               </div>
-            )}
-          </motion.div>
-        </div>
-      )}
+
+              <div className="country-search-container">
+                <Search size={18} className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="国を検索..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="country-search-input"
+                  autoFocus
+                />
+              </div>
+
+              <div className="countries-list">
+                {filteredCountries.map((country) => (
+                  <div
+                    key={country.code}
+                    className={`country-item ${selectedCountry?.code === country.code ? "selected" : ""
+                      }`}
+                    onClick={() => handleCountrySelect(country)}
+                  >
+                    <span className="country-flag">{country.flag}</span>
+                    <span className="country-name">{country.name}</span>
+                    <span className="country-dial-code">{country.dialCode}</span>
+                  </div>
+                ))}
+              </div>
+
+              {filteredCountries.length === 0 && (
+                <div style={{ padding: '40px 24px', textAlign: 'center', color: '#94a3b8' }}>
+                  <p>検索結果が見つかりません</p>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Search, X } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-toastify";
@@ -250,22 +250,17 @@ const Login = () => {
     <div className="auth-container login-page">
       <motion.div
         className="auth-content"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+        initial={{ opacity: 0, scale: 0.97, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="auth-header">
-          <h1>お帰りなさい</h1>
-          <p>サインインするには電話番号を入力してください</p>
+          <h1>ログイン</h1>
+          <p>続行するには電話番号を入力してください</p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          <motion.div
-            className="form-group"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
-          >
+          <div className="form-group">
             <label htmlFor="phoneNumber">電話番号</label>
             <div className="phone-input-wrapper">
               <button
@@ -273,7 +268,9 @@ const Login = () => {
                 className="phone-input-button"
                 onClick={handleModalOpen}
               >
+                <span className="country-flag">{selectedCountry.flag}</span>
                 <span className="country-code">{selectedCountry.dialCode}</span>
+                <span className="chevron">▼</span>
               </button>
               <input
                 type="tel"
@@ -282,48 +279,36 @@ const Login = () => {
                 value={phoneNumber}
                 onChange={handlePhoneChange}
                 onKeyDown={(e) => {
-                  // Prevent non-numeric characters from being typed (except formatting)
                   const allowedKeys = [
-                    "Backspace",
-                    "Delete",
-                    "Tab",
-                    "Escape",
-                    "Enter",
-                    "ArrowLeft",
-                    "ArrowRight",
-                    "ArrowUp",
-                    "ArrowDown",
+                    "Backspace", "Delete", "Tab", "Escape", "Enter",
+                    "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
                   ];
                   const isNumber = e.key >= "0" && e.key <= "9";
                   const isAllowedKey = allowedKeys.includes(e.key);
-
                   if (!isNumber && !isAllowedKey) {
                     e.preventDefault();
                   }
                 }}
                 placeholder={getPlaceholder(selectedCountry.code)}
-                className={`phone-input ${error ? "error" : ""}`}
+                className="phone-input"
                 inputMode="numeric"
                 autoComplete="tel"
               />
             </div>
             {error && <span className="error-message">{error}</span>}
-          </motion.div>
+          </div>
 
           <motion.button
             type="submit"
-            className="btn btn-primary btn-full"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="btn btn-primary"
+            whileHover={{ scale: 1.015 }}
+            whileTap={{ scale: 0.985 }}
             disabled={loading}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.4 }}
           >
             {loading ? (
               <span className="btn-loading">
                 <div className="spinner"></div>
-                コード送信中...
+                送信中...
               </span>
             ) : (
               "認証コードを送信"
@@ -331,84 +316,71 @@ const Login = () => {
           </motion.button>
         </form>
 
-        {/* <motion.div 
-          className="auth-divider"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.4 }}
-        >
-          <span>or</span>
-        </motion.div> */}
-
-        <motion.div
-          className="auth-footer"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.4 }}
-        >
+        <div className="auth-footer">
           <p>
-            アカウントをお持ちではありませんか？ <br />
+            アカウントを持ちではありませんか？ <br />
             <Link to="/register" className="auth-link">
-              アカウント作成
+              新規登録はこちら
             </Link>
           </p>
-        </motion.div>
+        </div>
       </motion.div>
 
-      {/* Country Selection Modal */}
-      {isCountryModalOpen && (
-        <div className="country-modal-overlay">
-          <motion.div
-            className="country-modal"
-            ref={modalRef}
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-          >
-            <div className="country-modal-header">
-              <h3>国を選択</h3>
-              <button className="modal-close-btn" onClick={handleModalClose}>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="country-search-container">
-              <Search size={16} className="search-icon" />
-              <input
-                type="text"
-                placeholder="国を検索..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="country-search-input"
-                autoFocus
-              />
-            </div>
-
-            <div className="countries-list">
-              {filteredCountries.map((country) => (
-                <div
-                  key={country.code}
-                  className={`country-item ${
-                    selectedCountry?.code === country.code ? "selected" : ""
-                  }`}
-                  onClick={() => handleCountrySelect(country)}
-                >
-                  <span className="country-flag">{country.flag}</span>
-                  <span className="country-name">{country.name}</span>
-                  <span className="country-dial-code">{country.dialCode}</span>
-                </div>
-              ))}
-            </div>
-
-            {filteredCountries.length === 0 && (
-              <div className="no-results">
-                <p>検索結果が見つかりません</p>
+      <AnimatePresence>
+        {isCountryModalOpen && (
+          <div className="country-modal-overlay" onClick={handleModalClose}>
+            <motion.div
+              className="country-modal"
+              ref={modalRef}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 32, stiffness: 350 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="country-modal-header">
+                <h3>国を選択</h3>
+                <button className="modal-close-btn" onClick={handleModalClose}>
+                  <X size={18} />
+                </button>
               </div>
-            )}
-          </motion.div>
-        </div>
-      )}
+
+              <div className="country-search-container">
+                <Search size={18} className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="国を検索..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="country-search-input"
+                  autoFocus
+                />
+              </div>
+
+              <div className="countries-list">
+                {filteredCountries.map((country) => (
+                  <div
+                    key={country.code}
+                    className={`country-item ${selectedCountry?.code === country.code ? "selected" : ""
+                      }`}
+                    onClick={() => handleCountrySelect(country)}
+                  >
+                    <span className="country-flag">{country.flag}</span>
+                    <span className="country-name">{country.name}</span>
+                    <span className="country-dial-code">{country.dialCode}</span>
+                  </div>
+                ))}
+              </div>
+
+              {filteredCountries.length === 0 && (
+                <div style={{ padding: '40px 24px', textAlign: 'center', color: '#94a3b8' }}>
+                  <p>検索結果が見つかりません</p>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

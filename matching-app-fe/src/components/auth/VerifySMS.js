@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Smartphone, Lightbulb, Mail } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "react-toastify";
@@ -163,36 +163,26 @@ const VerifySMS = () => {
     <div className="auth-container">
       <motion.div
         className="auth-content"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+        initial={{ opacity: 0, scale: 0.97, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="auth-header">
-          <motion.div
-            className="auth-logo"
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 1, delay: 0.3 }}
-          ></motion.div>
           <h1>認証コードを入力</h1>
-          <p>6桁の認証コードを入力してください</p>
+          <p>6桁のコードをお送りしました</p>
+
           {pendingVerification?.smsCode && (
-            <div className="dev-otp-notice">
-              <Lightbulb size={16} />
+            <div className="dev-otp-notice" style={{ marginTop: '16px' }}>
               <span>開発用コード: <strong>{pendingVerification.smsCode}</strong></span>
             </div>
           )}
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          <motion.div
-            className="verification-code-container"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
-          >
+          <div className="verification-code-container">
             <div className="verification-inputs">
               {verificationCode.map((digit, index) => (
-                <motion.input
+                <input
                   key={index}
                   ref={(el) => (inputRefs.current[index] = el)}
                   type="text"
@@ -202,35 +192,20 @@ const VerifySMS = () => {
                   onChange={(e) => handleCodeChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   onPaste={handlePaste}
-                  className={`verification-input ${error ? "error" : ""} ${digit ? "filled" : ""
-                    }`}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.1 * index, duration: 0.3 }}
-                  whileFocus={{ scale: 1.1 }}
+                  className="verification-input"
+                  autoComplete="one-time-code"
                 />
               ))}
             </div>
-            {error && (
-              <motion.span
-                className="error-message"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                {error}
-              </motion.span>
-            )}
-          </motion.div>
+            {error && <span className="error-message" style={{ textAlign: 'center', display: 'block' }}>{error}</span>}
+          </div>
 
           <motion.button
             type="submit"
-            className="btn btn-primary btn-full"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="btn btn-primary"
+            whileHover={{ scale: 1.015 }}
+            whileTap={{ scale: 0.985 }}
             disabled={loading}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.4 }}
           >
             {loading ? (
               <span className="btn-loading">
@@ -243,43 +218,31 @@ const VerifySMS = () => {
           </motion.button>
         </form>
 
-        <motion.div
-          className="resend-container"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.4 }}
-        >
+        <div className="resend-container" style={{ textAlign: 'center', marginTop: '32px' }}>
           {canResend ? (
             <button
               type="button"
-              className="resend-button"
+              className="btn btn-text"
               onClick={handleResend}
             >
-              コードが届かない場合
-              <span className="resend-link">再送信</span>
+              コードが届かない場合 <span className="auth-link" style={{ margin: 0 }}>再送信</span>
             </button>
           ) : (
-            <p className="resend-timer">
-              <span className="timer-count">{resendTimer}秒</span>
-              後に再送信
+            <p className="resend-timer" style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+              <span className="timer-count" style={{ color: 'var(--primary-mint)', fontWeight: '700', marginRight: '4px' }}>{resendTimer}秒</span>後に再送信可能
             </p>
           )}
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="auth-footer"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, duration: 0.4 }}
-        >
+        <div className="auth-footer" style={{ marginTop: '24px' }}>
           <button
             type="button"
             onClick={() => navigate("/login")}
-            className="back-button"
+            className="btn btn-secondary"
           >
-            ← 戻る
+            戻る
           </button>
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );
