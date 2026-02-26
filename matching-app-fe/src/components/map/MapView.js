@@ -52,6 +52,7 @@ const MapView = () => {
   const [refreshComplete, setRefreshComplete] = useState(false);
   const originalMapState = useRef(null);
   const [isRealtimeListHidden, setIsRealtimeListHidden] = useState(false);
+  const [approachState, setApproachState] = useState("idle"); // idle, loading, success, error
 
   // Define loadAllUsers first to avoid dependency issues
   const loadAllUsers = useCallback(async () => {
@@ -687,12 +688,39 @@ const MapView = () => {
     setUserPanelExpanded(!userPanelExpanded);
   };
 
-  const handleUserSelectionSubmit = (data) => {
+  const handleUserSelectionSubmit = async (data) => {
     console.log('User selection submitted:', data);
-    // Here you can add logic to handle the meeting request
-    // For now, just close the modal
-    setShowUserSelection(false);
-    setSelectedUserForModal(null);
+    // data should contain targetUserId and meetingReason
+    const { targetUserId, meetingReason } = data;
+    await triggerApproach(targetUserId, meetingReason);
+  };
+
+  const triggerApproach = async (targetUserId, meetingReason) => {
+    if (approachState === "loading") return;
+
+    setApproachState("loading");
+    try {
+      // Small delay to ensure loading screen is visible
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const response = await matchingAPI.sendMatchRequest(
+        targetUserId,
+        meetingReason
+      );
+
+      if (response.data) {
+        setApproachState("success");
+        // Success state will be handled inside UserSelectionModal to show success screen
+      }
+    } catch (error) {
+      console.error("Match request error:", error);
+      const message = error.response?.data?.error || "マッチリクエストの送信に失敗しました";
+      toast.error(message);
+      setApproachState("error");
+
+      // Reset back to idle after error so user can try again
+      setTimeout(() => setApproachState("idle"), 2000);
+    }
   };
 
   const handleUserSelectionCancel = () => {
@@ -900,10 +928,12 @@ const MapView = () => {
             onClose={() => {
               setShowUserSelection(false);
               setSelectedUserForModal(null);
+              setApproachState("idle");
             }}
             onSubmit={handleUserSelectionSubmit}
             onCancel={handleUserSelectionCancel}
             originalMapState={originalMapState.current}
+            approachState={approachState}
           />
         )}
       </AnimatePresence>

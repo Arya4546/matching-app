@@ -2,9 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import '../../styles/ApproachLoading.css';
 
-const ApproachLoading = ({ user }) => {
+const ApproachLoading = ({ user, onComplete }) => {
     return (
-        <div className="approach-loading-container">
+        <div className="approach-loading-container" onClick={onComplete}>
             <div className="approach-loading-content">
                 <motion.h2
                     className="approach-loading-title"

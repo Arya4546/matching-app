@@ -13,9 +13,10 @@ import { toast } from 'react-toastify';
 import { useLocation } from '../../contexts/LocationContext';
 import MeetingPointsService from '../../services/meetingPointsService';
 import ApproachLoading from '../map/ApproachLoading';
+import MatchSuccess from './MatchSuccess';
 import '../../styles/UserSelectionModal.css';
 
-const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, originalMapState }) => {
+const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, originalMapState, approachState }) => {
   const { currentLocation } = useLocation();
   const [selectedMeetingReason, setSelectedMeetingReason] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -29,7 +30,6 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
   const [showStatusTooltip, setShowStatusTooltip] = useState(false);
   const [activeStatusTooltip, setActiveStatusTooltip] = useState(null);
   const [selectedRequestReasons, setSelectedRequestReasons] = useState([]);
-  const [isApproaching, setIsApproaching] = useState(false);
   const [selectedTag, setSelectedTag] = useState('stroll'); // Default selection for visual match
 
   // Auto-hide tooltips after a short delay
@@ -981,20 +981,33 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                 <motion.button
                   className="pill-cta-btn"
                   whileTap={{ scale: 0.96 }}
-                  onClick={() => setIsApproaching(true)}
+                  onClick={() => {
+                    const reason = MEETING_REASONS.find(r => r.value === selectedTag)?.label || 'stroll';
+                    onSubmit({ targetUserId: user.id || user._id, meetingReason: reason });
+                  }}
+                  disabled={approachState === "loading"}
                 >
                   <RiSendPlaneFill className="cta-plane-icon" />
-                  <span>approach</span>
+                  <span>{approachState === "loading" ? 'loading...' : 'approach'}</span>
                 </motion.button>
               </div>
             </div>
 
             {/* Approach Loading Screen */}
             <AnimatePresence>
-              {isApproaching && (
+              {approachState === "loading" && (
                 <ApproachLoading
                   user={user}
-                  onComplete={() => setIsApproaching(false)}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* Match Success Screen */}
+            <AnimatePresence>
+              {approachState === "success" && (
+                <MatchSuccess
+                  user={user}
+                  onReturn={onClose}
                 />
               )}
             </AnimatePresence>
