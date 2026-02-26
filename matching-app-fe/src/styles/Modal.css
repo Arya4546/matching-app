@@ -870,7 +870,7 @@
 /* New Profile Layout Styles */
 .profile-header-section {
   height: calc(33.33vh - var(--header-height));
-  background: #4AC1E0;
+  background: #00C194;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1057,7 +1057,7 @@
 
 .edit-input {
   background: transparent;
-  border: 1px solid #4AC1E0;
+  border: 1px solid #00C194;
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 16px;
@@ -1069,13 +1069,13 @@
 }
 
 .edit-input:focus {
-  border-color: #36A5C1;
+  border-color: #00AB84;
   box-shadow: 0 0 0 2px rgba(74, 193, 224, 0.2);
 }
 
 .edit-textarea {
   background: transparent;
-  border: 1px solid #4AC1E0;
+  border: 1px solid #00C194;
   border-radius: 8px;
   padding: 10px;
   font-size: 16px;
@@ -1089,7 +1089,7 @@
 }
 
 .edit-textarea:focus {
-  border-color: #36A5C1;
+  border-color: #00AB84;
   box-shadow: 0 0 0 2px rgba(74, 193, 224, 0.2);
 }
 
@@ -1100,16 +1100,16 @@
   align-items: center;
   justify-content: center;
   background: #f3f4f6;
-  border: 2px dashed #4AC1E0;
+  border: 2px dashed #00C194;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: #4AC1E0;
+  color: #00C194;
 }
 
 .album-add-item:hover {
   background: #e8f0fe;
-  border-color: #36A5C1;
+  border-color: #00AB84;
   transform: scale(1.02);
 }
 
@@ -1168,12 +1168,12 @@
 }
 
 .confirm-btn {
-  background: #4AC1E0;
+  background: #00C194;
   color: white;
 }
 
 .confirm-btn:hover {
-  background: #36A5C1;
+  background: #00AB84;
   transform: scale(1.05);
 }
 
@@ -1226,7 +1226,7 @@
 }
 
 .name-icon {
-  color: #4AC1E0;
+  color: #00C194;
   font-size: 20px;
 }
 
@@ -1251,7 +1251,7 @@
 .checkmark {
   width: 20px;
   height: 20px;
-  border: 2px solid #4AC1E0;
+  border: 2px solid #00C194;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -1260,7 +1260,7 @@
 }
 
 .gender-checkbox input[type="checkbox"]:checked + .checkmark {
-  background: #4AC1E0;
+  background: #00C194;
   color: white;
 }
 
@@ -1273,7 +1273,7 @@
 .gender-label {
   font-size: 16px;
   font-weight: 600;
-  color: #4AC1E0;
+  color: #00C194;
 }
 
 .user-details {
@@ -1295,7 +1295,7 @@
 }
 
 .detail-icon {
-  color: #4AC1E0;
+  color: #00C194;
   flex-shrink: 0;
 }
 
@@ -1360,12 +1360,12 @@
 }
 
 .album-scroll-container::-webkit-scrollbar-thumb {
-  background: #4AC1E0;
+  background: #00C194;
   border-radius: 3px;
 }
 
 .album-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #36A5C1;
+  background: #00AB84;
 }
 
 .album-scroll {
@@ -1457,7 +1457,7 @@
 
 .add-text {
   font-size: 14px;
-  color: #4AC1E0;
+  color: #00C194;
   font-weight: 600;
   margin-top: 8px;
 }
@@ -1531,7 +1531,7 @@
 
 .gender-select {
   padding: 8px 12px;
-  border: 2px solid #4AC1E0;
+  border: 2px solid #00C194;
   border-radius: 8px;
   background: white;
   color: #1f2937;
@@ -1543,18 +1543,18 @@
 }
 
 .gender-select:hover {
-  border-color: #36A5C1;
+  border-color: #00AB84;
 }
 
 .gender-select:focus {
-  border-color: #36A5C1;
+  border-color: #00AB84;
   box-shadow: 0 0 0 3px rgba(74, 193, 224, 0.2);
 }
 
 .gender-display {
   font-size: 16px;
   font-weight: 600;
-  color: #4AC1E0;
+  color: #00C194;
   padding: 8px 12px;
   background: rgba(74, 193, 224, 0.1);
   border-radius: 8px;

@@ -1,17 +1,18 @@
-import { RiStarSmileFill } from "react-icons/ri"; 
-import { MdOutlineCancel } from "react-icons/md"; 
-import { RiSendPlaneFill } from "react-icons/ri"; 
-import { IoMdWalk } from "react-icons/io"; 
-import { MdLunchDining } from "react-icons/md"; 
-import { FaHeart } from "react-icons/fa"; 
-import { MdEmergency } from "react-icons/md"; 
+import { RiStarSmileFill } from "react-icons/ri";
+import { MdOutlineCancel } from "react-icons/md";
+import { RiSendPlaneFill } from "react-icons/ri";
+import { IoMdWalk } from "react-icons/io";
+import { MdLunchDining } from "react-icons/md";
+import { FaHeart } from "react-icons/fa";
+import { MdEmergency } from "react-icons/md";
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Users } from 'lucide-react';
+import { X, MapPin, Users, User } from 'lucide-react';
 import { matchingAPI } from '../../services/api';
 import { toast } from 'react-toastify';
 import { useLocation } from '../../contexts/LocationContext';
 import MeetingPointsService from '../../services/meetingPointsService';
+import ApproachLoading from '../map/ApproachLoading';
 import '../../styles/UserSelectionModal.css';
 
 const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, originalMapState }) => {
@@ -28,7 +29,9 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
   const [showStatusTooltip, setShowStatusTooltip] = useState(false);
   const [activeStatusTooltip, setActiveStatusTooltip] = useState(null);
   const [selectedRequestReasons, setSelectedRequestReasons] = useState([]);
-  
+  const [isApproaching, setIsApproaching] = useState(false);
+  const [selectedTag, setSelectedTag] = useState('stroll'); // Default selection for visual match
+
   // Auto-hide tooltips after a short delay
   useEffect(() => {
     if (!activeStatusTooltip) return;
@@ -190,10 +193,10 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
 
     // Clear meeting points from map
     MeetingPointsService.clearMeetingMarkers();
-    
+
     // Hide coordinates display
     setShowCoordinates(false);
-    
+
     // Close user profile info window
     if (window.googleMapsService) {
       window.googleMapsService.closeAllInfoWindows();
@@ -212,12 +215,12 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
   const restoreMapPosition = () => {
     console.log('🔄 Restoring map position...');
     setIsRestoring(true);
-    
+
     // Set data attribute to signal that modal is restoring
     if (modalRef.current) {
       modalRef.current.setAttribute('data-restoring', 'true');
     }
-    
+
     if (!window.googleMapsService || !window.googleMapsService.map) {
       console.warn('GoogleMapsService or map not available');
       setIsRestoring(false);
@@ -240,16 +243,16 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
     if (originalMapState && originalMapState.current) {
       const map = window.googleMapsService.map;
       const { center, zoom, bounds } = originalMapState.current;
-      
+
       console.log('📍 Restoring to original map state:', originalMapState.current);
-      
+
       // Restore center and zoom
       if (center && zoom) {
         map.setCenter(center);
         map.setZoom(zoom);
         console.log('✅ Restored original map center and zoom');
       }
-      
+
       // If bounds are available, use them to ensure all markers are visible
       if (bounds && !bounds.isEmpty()) {
         setTimeout(() => {
@@ -266,7 +269,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
           currentLocation.lat,
           currentLocation.lng
         );
-        
+
         map.setCenter(userLocation);
         map.setZoom(8); // 100km view
         console.log('✅ Fallback: Map centered on user location with 100km view');
@@ -280,7 +283,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
         console.log('✅ Triggered map resize event');
       }
       setIsRestoring(false);
-      
+
       // Clear the data attribute
       if (modalRef.current) {
         modalRef.current.setAttribute('data-restoring', 'false');
@@ -585,7 +588,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
     setMeetingPoints([]);
     setShowCoordinates(false);
     MeetingPointsService.selectedMeetingPoint = null;
-    
+
     // Use smooth close animation
     smoothCloseModal();
     onCancel();
@@ -598,7 +601,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
 
   return (
     <AnimatePresence>
-      <div 
+      <div
         className="user-selection-modal-overlay"
         style={{
           opacity: isClosing ? 0 : 1,
@@ -611,14 +614,14 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
             ref={modalRef}
             className="user-selection-sidebar"
             initial={{ x: '-100%' }}
-            animate={{ 
+            animate={{
               x: isClosing ? '-100%' : 0,
               opacity: isClosing ? 0 : 1
             }}
             exit={{ x: '-100%' }}
-            transition={{ 
-              type: 'spring', 
-              damping: 25, 
+            transition={{
+              type: 'spring',
+              damping: 25,
               stiffness: 200,
               duration: isClosing ? 0.25 : undefined
             }}
@@ -636,7 +639,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                   {/* Reviews (rate) under avatar */}
                   <div style={{ position: 'relative', marginTop: 6 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 2 }} title={`レビュー: ${ratingValue.toFixed ? ratingValue.toFixed(1) : ratingValue}`}>
-                      {[1,2,3,4,5].map((i) => (
+                      {[1, 2, 3, 4, 5].map((i) => (
                         <span key={i} style={{ color: i <= Math.round(Math.min(5, Math.max(0, ratingValue))) ? '#FFC107' : '#E5E7EB', fontSize: 14 }}>★</span>
                       ))}
                     </div>
@@ -654,8 +657,8 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                     </div>
                     <div style={{ fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F3F4F6', padding: '4px 8px', borderRadius: 999, width: 32, height: 32 }}>
                       {getGenderIcon(user?.gender) && (
-                        <img 
-                          src={getGenderIcon(user?.gender)} 
+                        <img
+                          src={getGenderIcon(user?.gender)}
                           alt={genderLabel}
                           style={{ width: 24, height: 24, objectFit: 'contain' }}
                         />
@@ -762,18 +765,18 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                     className={`reason-pc-horizontal-item ${selectedMeetingReason === reason.value ? 'selected' : ''}`}
                     onClick={() => setSelectedMeetingReason(reason.value)}
                   >
-                    <div 
+                    <div
                       className="reason-pc-horizontal-icon"
-                      style={{ 
+                      style={{
                         backgroundColor: selectedMeetingReason === reason.value ? '#ffffff' : reason.color,
-                        boxShadow: selectedMeetingReason === reason.value 
-                          ? `0 4px 12px ${reason.color}40` 
+                        boxShadow: selectedMeetingReason === reason.value
+                          ? `0 4px 12px ${reason.color}40`
                           : `0 2px 8px ${reason.color}40`
                       }}
                     >
-                      <span 
+                      <span
                         className="reason-pc-horizontal-emoji"
-                        style={{ 
+                        style={{
                           color: selectedMeetingReason === reason.value ? reason.color : '#ffffff'
                         }}
                       >
@@ -784,7 +787,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                   </div>
                 ))}
               </div>
-            {/* {selectedMeetingReason === "other" && (
+              {/* {selectedMeetingReason === "other" && (
               <div className="custom-reason-input">
                 <input
                   type="text"
@@ -799,55 +802,55 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
 
             {/* Meeting Locations Section */}
             <div className="meeting-locations-section">
-            {/* <h4 className="section-title">
+              {/* <h4 className="section-title">
               <MapPin size={18} />
               Meeting Locations
             </h4> */}
-            <div className="locations-scrollable-list">
-              {loadingPoints ? (
-                <div className="loading-message">待ち合わせ場所を検索中...</div>
-              ) : meetingPoints.length > 0 ? (
-                meetingPoints.map((location) => (
-                  <div
-                    key={location.id}
-                    className={`location-item ${selectedLocation?.id === location.id ? 'selected' : ''}`}
-                    onClick={() => handleLocationSelect(location)}
-                  >
-                    <div className="display-flex">
-                      <div className="location-icon">
-                        <MapPin size={18} />
+              <div className="locations-scrollable-list">
+                {loadingPoints ? (
+                  <div className="loading-message">待ち合わせ場所を検索中...</div>
+                ) : meetingPoints.length > 0 ? (
+                  meetingPoints.map((location) => (
+                    <div
+                      key={location.id}
+                      className={`location-item ${selectedLocation?.id === location.id ? 'selected' : ''}`}
+                      onClick={() => handleLocationSelect(location)}
+                    >
+                      <div className="display-flex">
+                        <div className="location-icon">
+                          <MapPin size={18} />
+                        </div>
+                        <div className="location-name">{location.name}</div>
+                        <div className="location-address">{location.address}</div>
                       </div>
-                      <div className="location-name">{location.name}</div>
-                      <div className="location-address">{location.address}</div>
+                      {location.distanceToUser && location.distanceToTarget && (
+                        <div className="location-distances">
+                          <div className="distance-info">
+                            あなた: {location.distanceToUser} km
+                            {location.walkingTimeUser && (
+                              <span className="walking-time">
+                                ({MeetingPointsService.formatWalkingTime(location.walkingTimeUser)})
+                              </span>
+                            )}
+                          </div>
+                          <div className="distance-info">
+                            {user.name}: {location.distanceToTarget} km
+                            {location.walkingTimeTarget && (
+                              <span className="walking-time">
+                                ({MeetingPointsService.formatWalkingTime(location.walkingTimeTarget)})
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    {location.distanceToUser && location.distanceToTarget && (
-                      <div className="location-distances">
-                        <div className="distance-info">
-                          あなた: {location.distanceToUser} km
-                          {location.walkingTimeUser && (
-                            <span className="walking-time">
-                              ({MeetingPointsService.formatWalkingTime(location.walkingTimeUser)})
-                            </span>
-                          )}
-                        </div>
-                        <div className="distance-info">
-                          {user.name}: {location.distanceToTarget} km
-                          {location.walkingTimeTarget && (
-                            <span className="walking-time">
-                              ({MeetingPointsService.formatWalkingTime(location.walkingTimeTarget)})
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                  ))
+                ) : (
+                  <div className="no-locations-message">
+                    待ち合わせ場所が見つかりませんでした
                   </div>
-                ))
-              ) : (
-                <div className="no-locations-message">
-                  待ち合わせ場所が見つかりませんでした
-                </div>
-              )}
-            </div>
+                )}
+              </div>
             </div>
 
             {/* Action Buttons - 1/8 of modal height */}
@@ -876,205 +879,125 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
             ref={modalRef}
             className="user-selection-modal"
             initial={{ y: '100%' }}
-            animate={{ 
+            animate={{
               y: isClosing ? '100%' : 0,
               opacity: isClosing ? 0 : 1
             }}
             exit={{ y: '100%' }}
-            transition={{ 
-              type: 'spring', 
-              damping: 25, 
+            transition={{
+              type: 'spring',
+              damping: 25,
               stiffness: 200,
               duration: isClosing ? 0.25 : undefined
             }}
           >
-            {/* Header Section - User Information (Snapchat-like playful) */}
-            <div className="modal-header" style={{ position: 'relative' }}>
-              <div className="user-profile" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                {/* Left: Avatar + Rating */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <img
-                    src={user.profilePhoto || "https://randomuser.me/api/portraits/men/32.jpg"}
-                    alt={user.name}
-                    className="user-avatar"
-                  />
-                  {/* Reviews (rate) under avatar */}
-                  <div style={{ position: 'relative', marginTop: 6 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }} title={`レビュー: ${ratingValue.toFixed ? ratingValue.toFixed(1) : ratingValue}`}>
-                      {[1,2,3,4,5].map((i) => (
-                        <span key={i} style={{ color: i <= Math.round(Math.min(5, Math.max(0, ratingValue))) ? '#FFC107' : '#E5E7EB', fontSize: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 0 1px rgba(255, 255, 255, 1)) drop-shadow(0 0 1.6px rgba(255, 255, 255, 0.9))' }}><RiStarSmileFill /></span>
-                      ))}
+            {/* Premium Bottom Sheet Layout */}
+            <div className="premium-bottom-sheet-content">
+              {/* Header Row: Left(Avatar + Info) | Right(Action Button) */}
+              <div className="sheet-header-row">
+                <div className="avatar-info-cluster">
+                  <div className="avatar-wrapper">
+                    <img
+                      src={user.profilePhoto || "https://randomuser.me/api/portraits/men/32.jpg"}
+                      alt={user.name}
+                      className="large-avatar"
+                    />
+                    {getGenderIcon(user?.gender) && (
+                      <div className="gender-badge">
+                        <img src={getGenderIcon(user?.gender)} alt="gender" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="user-text-details">
+                    <div className="name-age-row">
+                      <span className="name-text">{user?.name || 'ユーザー'}</span>
+                      {age && <span className="age-pill">{age}歳</span>}
                     </div>
-                    <div style={{ position: 'absolute', top: -12, right: -14, background: 'transparent', color: '#ffffff', borderRadius: 8, padding: '1px 6px', fontSize: 12, fontWeight: 800 }}>
-                      {ratingValue && ratingValue.toFixed ? ratingValue.toFixed(1) : (Number(ratingValue) || 0).toFixed(1)}
+                    <div className="rating-row">
+                      <div className="stars-cluster">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <RiStarSmileFill
+                            key={i}
+                            className="star-icon"
+                            style={{ color: i <= Math.round(Number(ratingValue) || 0) ? '#FFB800' : '#E5E7EB' }}
+                          />
+                        ))}
+                      </div>
+                      <span className="review-count">{meetingCount > 0 ? `${meetingCount}人` : 'New'}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Middle: Name (Age) + Meeting count + Status icons row */}
-                <div style={{ flex: 1, minWidth: 0, paddingLeft: 8, paddingRight: 8 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                    <div style={{ fontWeight: 800, fontSize: 16, lineHeight: 1.2, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {displayName}
-                    </div>
-                    <div style={{ fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F3F4F6', padding: '4px 8px', borderRadius: 999, width: 32, height: 32 }}>
-                      {getGenderIcon(user?.gender) && (
-                        <img 
-                          src={getGenderIcon(user?.gender)} 
-                          alt={genderLabel}
-                          style={{ width: 24, height: 24, objectFit: 'contain' }}
-                        />
+                {/* Right side floating action */}
+                <button className="user-action-btn" onClick={onClose}>
+                  <User size={20} color="#00C194" />
+                </button>
+              </div>
+
+              {/* Interest Tags Row */}
+              <div className="tags-row">
+                {MEETING_REASONS.map((s) => {
+                  const isSelected = selectedTag === s.value;
+                  return (
+                    <div
+                      key={s.value}
+                      className={`pill-container ${isSelected ? 'selected' : ''}`}
+                      onClick={() => setSelectedTag(s.value)}
+                    >
+                      <div className="pill-circle">
+                        <span className="pill-icon">{s.emoji}</span>
+                      </div>
+                      <span className="pill-label">{s.label === '散歩' ? 'stroll' : s.label === '食事' ? 'meal' : s.label === '出会い' ? 'encounter' : 'urgent'}</span>
+                      {isSelected && (
+                        <div className="pill-check-badge">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        </div>
                       )}
                     </div>
-                  </div>
-                  {/* Meeting count between name and status icons */}
-                  <div style={{ marginTop: 4, fontSize: 12, fontWeight: 700, color: '#ffffff' }}>
-                    面会回数: {Number.isFinite(meetingCount) ? meetingCount : 0}
-                  </div>
-                  {statusIcons.length > 0 && (
-                    <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end' }}>
-                      {statusIcons.map((s) => (
-                        <div key={s.value} style={{ position: 'relative', marginRight: 6, }}>
-                          <button
-                            onClick={() => setActiveStatusTooltip(activeStatusTooltip === s.value ? null : s.value)}
-                            style={{
-                              width: 42,
-                              height: 42,
-                              borderRadius: 15,
-                              background: s.value === 'other' ? '#ffffff' : s.color,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              boxShadow: `${s.color}40 0px 2px 8px`,
-                              border: 'none',
-                              boxSizing: 'border-box',
-                              padding: 0,
-                              cursor: 'pointer'
-                            }}
-                            title={s.label}
-                          >
-                            <span style={{ color: '#fff', fontSize: 24 }}>{s.emoji}</span>
-                          </button>
-                          <AnimatePresence>
-                            {activeStatusTooltip === s.value && (
-                              <motion.div
-                                initial={{ opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 6 }}
-                                transition={{ duration: 0.15 }}
-                                style={{
-                                  position: 'absolute', bottom: 54, left: '50%', transform: 'translateX(-50%)',
-                                  background: '#111827', color: '#fff', padding: '6px 10px', borderRadius: 8,
-                                  fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', boxShadow: '0 6px 20px rgba(0,0,0,0.25)'
-                                }}
-                              >
-                                {s.label}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                  );
+                })}
+              </div>
 
-                {/* Right: Status icon with tooltip */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, position: 'relative' }}>
-                  {/* gender moved next to name */}
+              {/* Bio Section */}
+              <div className="bio-section">
+                <span className="bio-label">self-introduction</span>
+                <p className="bio-text">
+                  {user.aboutme || user.bio || "As a web freelancer, I strive to create simple and comfortable designs and code every day."}
+                </p>
+              </div>
+
+              {/* Album Section */}
+              <div className="album-section">
+                <div className="album-photos">
+                  <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80" alt="photo1" className="album-thumbnail" />
+                  <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=crop&w=200&q=80" alt="photo2" className="album-thumbnail" />
                 </div>
               </div>
-              {/* Meeting reason icon in bottom-right corner of header */}
-              {statusReason && (
-                <div style={{ position: 'absolute', bottom: 12, right: 12, zIndex: 10 }}>
-                  <button
-                    onClick={() => setShowStatusTooltip(v => !v)}
-                    style={{
-                      width: 72, height: 72, borderRadius: 24, border: 'none', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box', padding: 0,
-                      background: statusReason.color
-                    }}
-                    title={statusReason.label}
-                  >
-                    <span style={{ color: '#fff', fontSize: 36 }}>{statusReason.emoji}</span>
-                  </button>
-                  <AnimatePresence>
-                    {showStatusTooltip && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 6 }}
-                        transition={{ duration: 0.15 }}
-                        style={{
-                          position: 'absolute', bottom: 80, right: 0, background: '#111827', color: '#fff',
-                          padding: '6px 10px', borderRadius: 8, fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', boxShadow: '0 6px 20px rgba(0,0,0,0.25)'
-                        }}
-                      >
-                        {statusReason.label}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+
+              {/* CTA Section - Fixed footer with white pill button */}
+              <div className="cta-footer-bar">
+                <motion.button
+                  className="pill-cta-btn"
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setIsApproaching(true)}
+                >
+                  <RiSendPlaneFill className="cta-plane-icon" />
+                  <span>approach</span>
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Approach Loading Screen */}
+            <AnimatePresence>
+              {isApproaching && (
+                <ApproachLoading
+                  user={user}
+                  onComplete={() => setIsApproaching(false)}
+                />
               )}
-            </div>
-
-            {/* About Me Section */}
-            <div className="about-me-section">
-              <h4 className="section-title">自己紹介</h4>
-              <div className="bio-content">
-                {user.aboutme ? (
-                  <p className="bio-text">{user.aboutme}</p>
-                ) : user.bio ? (
-                  <p className="bio-text">{user.bio}</p>
-                ) : (
-                  <p className="no-bio">自己紹介がありません</p>
-                )}
-              </div>
-            </div>
-
-            {/* Photo Album Section */}
-            <div className="photo-album-section">
-              {/* <h4 className="section-title">
-                <Users size={18} />
-                Photo Album
-              </h4> */}
-              <div className="photo-grid">
-                {user.album && user.album.length > 0 ? (
-                  user.album.map((photo, index) => (
-                    <div key={index} className="photo-item">
-                      <img
-                        src={photo}
-                        alt={`Album ${index + 1}`}
-                        className="album-photo"
-                      />
-                    </div>
-                  ))
-                ) : user.profilePhoto ? (
-                  <div className="photo-item">
-                    <img
-                      src={user.profilePhoto}
-                      alt="Profile"
-                      className="album-photo"
-                    />
-                  </div>
-                ) : (
-                  <div className="no-photos">
-                    <Users size={32} />
-                    <p>写真がありません</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Meetup Request Button */}
-            <div className="meetup-request-section">
-              <button 
-                className="meetup-request-btn"
-                onClick={handleMeetupRequest}
-              >
-                
-                <span>マッチング理由選択</span>
-              </button>
-            </div>
+            </AnimatePresence>
 
             {/* Meeting Request Sections - Rise from bottom as single modal */}
             <AnimatePresence>
@@ -1089,92 +1012,92 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                     transition={{ duration: 0.3 }}
                     onClick={() => setShowMeetingRequest(false)}
                   />
-                  
+
                   {/* Meeting Request Modal */}
                   <motion.div
                     className="meeting-request-modal"
                     initial={{ y: '100%', opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: '100%', opacity: 0 }}
-                    transition={{ 
-                      type: 'spring', 
-                      damping: 25, 
+                    transition={{
+                      type: 'spring',
+                      damping: 25,
                       stiffness: 200,
                       duration: 0.4
                     }}
                     style={{ maxHeight: '55vh' }}
                   >
-                  {/* Meeting Reasons Section */}
-                  <div className="meeting-reasons-section">
-                    {/* Mobile Layout - Vertical icons */}
-                    <div className="reasons-horizontal-scroll" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', columnGap: 12, rowGap: 12 }}>
-                      {MEETING_REASONS.map((reason) => {
-                        const isSelected = selectedRequestReasons.includes(reason.value);
-                        return (
-                          <div
-                            key={reason.value}
-                            className={`reason-icon-item ${isSelected ? 'selected' : ''}`}
-                            onClick={() => {
-                              setSelectedRequestReasons((prev) =>
-                                prev.includes(reason.value)
-                                  ? prev.filter((v) => v !== reason.value)
-                                  : [...prev, reason.value]
-                              );
-                            }}
-                            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                          >
-                            <div 
-                              className="reason-icon"
-                              style={{ 
-                                backgroundColor: isSelected ? '#ffffff' : reason.color,
-                                boxShadow: isSelected 
-                                  ? `0 4px 12px ${reason.color}40` 
-                                  : `0 2px 8px ${reason.color}40`
+                    {/* Meeting Reasons Section */}
+                    <div className="meeting-reasons-section">
+                      {/* Mobile Layout - Vertical icons */}
+                      <div className="reasons-horizontal-scroll" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', columnGap: 12, rowGap: 12 }}>
+                        {MEETING_REASONS.map((reason) => {
+                          const isSelected = selectedRequestReasons.includes(reason.value);
+                          return (
+                            <div
+                              key={reason.value}
+                              className={`reason-icon-item ${isSelected ? 'selected' : ''}`}
+                              onClick={() => {
+                                setSelectedRequestReasons((prev) =>
+                                  prev.includes(reason.value)
+                                    ? prev.filter((v) => v !== reason.value)
+                                    : [...prev, reason.value]
+                                );
                               }}
+                              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
                             >
-                              <span 
-                                className="reason-emoji"
-                                style={{ 
-                                  color: isSelected ? reason.color : '#ffffff'
+                              <div
+                                className="reason-icon"
+                                style={{
+                                  backgroundColor: isSelected ? '#ffffff' : reason.color,
+                                  boxShadow: isSelected
+                                    ? `0 4px 12px ${reason.color}40`
+                                    : `0 2px 8px ${reason.color}40`
                                 }}
                               >
-                                {reason.emoji}
-                              </span>
+                                <span
+                                  className="reason-emoji"
+                                  style={{
+                                    color: isSelected ? reason.color : '#ffffff'
+                                  }}
+                                >
+                                  {reason.emoji}
+                                </span>
+                              </div>
+                              <span className="reason-label" style={{ width: '100%', textAlign: 'center', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', marginTop: 6 }}>{reason.label}</span>
                             </div>
-                            <span className="reason-label" style={{ width: '100%', textAlign: 'center', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', marginTop: 6 }}>{reason.label}</span>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Action Buttons - 1/8 of modal height */}
-                  <div className="modal-actions">
-                    {/* <div>
+
+                    {/* Action Buttons - 1/8 of modal height */}
+                    <div className="modal-actions">
+                      {/* <div>
                       <button className="btn-cancel" onClick={handleCancel}>
                         <MdOutlineCancel className="btn-icon" />
                         <span>キャンセル</span>
                       </button>
                     </div> */}
-                    <div>
-                      <button
-                        className="btn-submit"
-                        onClick={handleSubmit}
-                        disabled={selectedRequestReasons.length === 0 || loading}
-                      >
-                        <RiSendPlaneFill className="btn-icon" />
-                        <span>{loading ? 'アプローチ中...' : 'アプローチ'}</span>
-                      </button>
+                      <div>
+                        <button
+                          className="btn-submit"
+                          onClick={handleSubmit}
+                          disabled={selectedRequestReasons.length === 0 || loading}
+                        >
+                          <RiSendPlaneFill className="btn-icon" />
+                          <span>{loading ? 'アプローチ中...' : 'アプローチ'}</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
                 </>
               )}
             </AnimatePresence>
           </motion.div>
         )}
       </div>
-      
+
       {/* Coordinate Display for PC */}
       {isDesktop && showCoordinates && selectedLocation && (
         <motion.div
@@ -1209,12 +1132,12 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                 <span className="coordinate-value">{selectedLocation.address}</span>
               </div>
             )}
-            
+
             {/* Distance and Time Information */}
             <div className="coordinate-section-divider"></div>
-            
+
             <div className="coordinate-section-title">距離・時間情報</div>
-            
+
             <div className="coordinate-item">
               <span className="coordinate-label">あなた:</span>
               <span className="coordinate-value">
@@ -1226,7 +1149,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                 )}
               </span>
             </div>
-            
+
             <div className="coordinate-item">
               <span className="coordinate-label">{user.name}:</span>
               <span className="coordinate-value">

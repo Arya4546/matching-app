@@ -67,10 +67,112 @@ class GoogleMapsService {
     const defaultOptions = {
       zoom: 15,
       center: { lat: 0, lng: 0 },
+      disableDefaultUI: true, // Forcefully disable all default buttons
       mapTypeControl: false,
       streetViewControl: false,
       fullscreenControl: false,
+      zoomControl: false,
+      scaleControl: false,
+      rotateControl: false,
+      clickableIcons: false,
       styles: [
+        {
+          "elementType": "geometry",
+          "stylers": [{ "color": "#f5f5f5" }]
+        },
+        {
+          "elementType": "labels.icon",
+          "stylers": [{ "visibility": "off" }]
+        },
+        {
+          "elementType": "labels.text.fill",
+          "stylers": [{ "color": "#616161" }]
+        },
+        {
+          "elementType": "labels.text.stroke",
+          "stylers": [{ "color": "#f5f5f5" }]
+        },
+        {
+          "featureType": "administrative.land_parcel",
+          "elementType": "labels.text.fill",
+          "stylers": [{ "color": "#bdbdbd" }]
+        },
+        {
+          "featureType": "poi",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#eeeeee" }]
+        },
+        {
+          "featureType": "poi",
+          "elementType": "labels.text.fill",
+          "stylers": [{ "color": "#757575" }]
+        },
+        {
+          "featureType": "poi.park",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#e5e5e5" }]
+        },
+        {
+          "featureType": "poi.park",
+          "elementType": "labels.text.fill",
+          "stylers": [{ "color": "#9e9e9e" }]
+        },
+        {
+          "featureType": "road",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#ffffff" }]
+        },
+        {
+          "featureType": "road.arterial",
+          "elementType": "labels.text.fill",
+          "stylers": [{ "color": "#757575" }]
+        },
+        {
+          "featureType": "road.highway",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#dadada" }]
+        },
+        {
+          "featureType": "road.highway",
+          "elementType": "labels.text.fill",
+          "stylers": [{ "color": "#616161" }]
+        },
+        {
+          "featureType": "road.local",
+          "elementType": "labels.text.fill",
+          "stylers": [{ "color": "#9e9e9e" }]
+        },
+        {
+          "featureType": "transit.line",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#e5e5e5" }]
+        },
+        {
+          "featureType": "transit.station",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#eeeeee" }]
+        },
+        {
+          "featureType": "water",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#e3f2fd" }]
+        },
+        {
+          "featureType": "water",
+          "elementType": "labels.text.fill",
+          "stylers": [{ "color": "#90caf9" }]
+        },
+        {
+          "featureType": "road",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#ffffff" }]
+        },
+        {
+          "featureType": "road.highway",
+          "elementType": "geometry",
+          "stylers": [{ "color": "#f1f1f1" }]
+        },
+        // Hide points of interest and transit labels
         {
           featureType: "poi",
           elementType: "labels",
@@ -180,10 +282,10 @@ class GoogleMapsService {
     if (this.blinkingInterval) {
       clearInterval(this.blinkingInterval);
     }
-    
+
     this.selectedMarker = marker;
     this.isBlinking = true;
-    
+
     // Keep the marker static - no blinking animation
     // The exclamation mark will handle the blinking effect
   }
@@ -206,37 +308,37 @@ class GoogleMapsService {
 
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
-    
+
     const size = 24; // Smaller size
     canvas.width = size;
     canvas.height = size;
-    
+
     if (isVisible) {
       // Draw exclamation mark
       context.fillStyle = '#ff4444';
       context.beginPath();
-      context.arc(size/2, size/2, size/2 - 1, 0, 2 * Math.PI);
+      context.arc(size / 2, size / 2, size / 2 - 1, 0, 2 * Math.PI);
       context.fill();
-      
+
       // White border
       context.strokeStyle = '#ffffff';
       context.lineWidth = 2;
       context.stroke();
-      
+
       // Exclamation mark
       context.fillStyle = '#ffffff';
       context.font = 'bold 12px Arial';
       context.textAlign = 'center';
       context.textBaseline = 'middle';
-      context.fillText('!', size/2, size/2);
+      context.fillText('!', size / 2, size / 2);
     }
-    
+
     // Anchor the exclamation so its center aligns to the user's avatar center
     // User avatar center is ~40px above the pin tip (anchor of user marker)
     return {
       url: canvas.toDataURL('image/png', 1.0),
       scaledSize: new this.google.maps.Size(size, size),
-      anchor: new this.google.maps.Point(size/2, (size/2) + 65),
+      anchor: new this.google.maps.Point(size / 2, (size / 2) + 65),
     };
   }
 
@@ -305,16 +407,16 @@ class GoogleMapsService {
     // Create a transparent canvas
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
-    
+
     const pinWidth = 50;
     const pinHeight = 60;
-    
+
     canvas.width = pinWidth;
     canvas.height = pinHeight;
-    
+
     // Make the entire canvas transparent
     context.clearRect(0, 0, pinWidth, pinHeight);
-    
+
     return {
       url: canvas.toDataURL('image/png', 1.0),
       scaledSize: new this.google.maps.Size(pinWidth, pinHeight),
@@ -326,7 +428,7 @@ class GoogleMapsService {
   clearSelection() {
     this.stopBlinkingAnimation();
     this.hideExclamationMark();
-    
+
     // Reset all markers to normal state
     for (const [userId, marker] of this.markers) {
       if (marker.userData) {
@@ -339,7 +441,7 @@ class GoogleMapsService {
     }
   }
 
-  // Create circular avatar marker icon with pin below
+  // Create circular avatar marker icon without pin below
   createAvatarMarkerIcon(avatarUrl, size = 50, isSelected = false, isCurrentUser = false, gender = 'male') {
     if (!this.google || !this.google.maps) {
       throw new Error("Google Maps not initialized");
@@ -349,50 +451,65 @@ class GoogleMapsService {
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
 
-    // Pin dimensions for flat design
-    const pinWidth = 50;
-    const pinHeight = 60;
-    const pinTopRadius = 20;
-    const pinBottomRadius = 6;
-    const baseHeight = 3;
+    // Dimension for circular avatar design with shadow padding
+    const padding = 12;
+    const pinWidth = size + padding * 2;
+    const pinHeight = size + padding * 2;
+    const radius = size / 2;
 
     canvas.width = pinWidth;
     canvas.height = pinHeight;
 
     const centerX = pinWidth / 2;
-    const centerY = pinTopRadius;
+    const centerY = pinHeight / 2;
 
     // Enable anti-aliasing for clean edges
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
 
-    // Determine pin colors based on gender
-    const pinColors = this.getPinColorsByGender(gender);
+    // Draw shadow
+    context.shadowColor = 'rgba(0, 0, 0, 0.1)';
+    context.shadowBlur = 10;
+    context.shadowOffsetX = 0;
+    context.shadowOffsetY = 4;
 
-    // Draw pin body
-    context.fillStyle = pinColors.body;
+    // Draw Pin Shape (Circle + Triangle tail)
+    context.fillStyle = '#FFFFFF';
     context.beginPath();
-    context.arc(centerX, centerY, pinTopRadius, 0, 2 * Math.PI);
-    context.fill();
-
-    // Draw pin point
-    context.beginPath();
-    context.moveTo(centerX, centerY + pinTopRadius);
-    context.lineTo(centerX - pinBottomRadius, pinHeight - baseHeight);
-    context.lineTo(centerX + pinBottomRadius, pinHeight - baseHeight);
+    context.arc(centerX, centerY, radius + 4, 0.15 * Math.PI, 0.85 * Math.PI, true);
+    // Draw the tail
+    context.lineTo(centerX, centerY + radius + 12);
     context.closePath();
     context.fill();
 
-    // Draw base
-    context.fillStyle = pinColors.base;
-    context.fillRect(centerX - pinBottomRadius, pinHeight - baseHeight, pinBottomRadius * 2, baseHeight);
+    // Reset shadow
+    context.shadowColor = 'transparent';
+    context.shadowBlur = 0;
+    context.shadowOffsetX = 0;
+    context.shadowOffsetY = 0;
 
-    // Draw white circle for avatar/symbol
-    const whiteCircleRadius = pinTopRadius - 4;
+    // Redraw the main circle on top to ensure clean border alignment
     context.fillStyle = '#FFFFFF';
     context.beginPath();
-    context.arc(centerX, centerY, whiteCircleRadius, 0, 2 * Math.PI);
+    context.arc(centerX, centerY, radius + 4, 0, 2 * Math.PI);
     context.fill();
+
+    // Draw anchor dot (subtle dot at the tip of the tail)
+    context.fillStyle = '#FFFFFF';
+    context.beginPath();
+    context.arc(centerX, centerY + radius + 12, 2, 0, 2 * Math.PI);
+    context.fill();
+
+    // If current user, add a subtle mint glow or ring
+    if (isCurrentUser) {
+      context.save();
+      context.strokeStyle = 'rgba(0, 193, 148, 0.4)';
+      context.lineWidth = 2;
+      context.beginPath();
+      context.arc(centerX, centerY, radius + 7, 0, 2 * Math.PI);
+      context.stroke();
+      context.restore();
+    }
 
     // Always draw the user's avatar inside the pin (also for current user)
     return this.drawUserAvatar(
@@ -400,7 +517,7 @@ class GoogleMapsService {
       context,
       centerX,
       centerY,
-      whiteCircleRadius,
+      radius,
       avatarUrl,
       pinWidth,
       pinHeight
@@ -432,7 +549,7 @@ class GoogleMapsService {
         resolve({
           url: dataUrl,
           scaledSize: new this.google.maps.Size(pinWidth, pinHeight),
-          anchor: new this.google.maps.Point(centerX, pinHeight),
+          anchor: new this.google.maps.Point(centerX, centerY + radius + 12),
         });
       };
 
@@ -454,7 +571,7 @@ class GoogleMapsService {
         resolve({
           url: dataUrl,
           scaledSize: new this.google.maps.Size(pinWidth, pinHeight),
-          anchor: new this.google.maps.Point(centerX, pinHeight),
+          anchor: new this.google.maps.Point(centerX, centerY + radius + 12),
         });
       };
 
@@ -468,7 +585,7 @@ class GoogleMapsService {
       const loadImage = (url) => new Promise((res, rej) => {
         const image = new Image();
         image.crossOrigin = 'anonymous';
-        try { image.referrerPolicy = 'no-referrer'; } catch (_) {}
+        try { image.referrerPolicy = 'no-referrer'; } catch (_) { }
         image.onload = () => res(image);
         image.onerror = (e) => rej(e);
         image.src = url;
@@ -489,7 +606,7 @@ class GoogleMapsService {
           resolve({
             url: dataUrl,
             scaledSize: new this.google.maps.Size(pinWidth, pinHeight),
-            anchor: new this.google.maps.Point(centerX, pinHeight),
+            anchor: new this.google.maps.Point(centerX, centerY),
           });
         } catch (e) {
           // If canvas is tainted, try proxied image once
@@ -517,7 +634,7 @@ class GoogleMapsService {
               resolve({
                 url: dataUrl2,
                 scaledSize: new this.google.maps.Size(pinWidth, pinHeight),
-                anchor: new this.google.maps.Point(centerX, pinHeight),
+                anchor: new this.google.maps.Point(centerX, centerY),
               });
             })
             .catch(() => {
@@ -533,7 +650,7 @@ class GoogleMapsService {
               resolve({
                 url: dataUrl,
                 scaledSize: new this.google.maps.Size(pinWidth, pinHeight),
-                anchor: new this.google.maps.Point(centerX, pinHeight),
+                anchor: new this.google.maps.Point(centerX, centerY),
               });
             });
         }
@@ -560,7 +677,7 @@ class GoogleMapsService {
               resolve({
                 url: dataUrl,
                 scaledSize: new this.google.maps.Size(pinWidth, pinHeight),
-                anchor: new this.google.maps.Point(centerX, pinHeight),
+                anchor: new this.google.maps.Point(centerX, centerY),
               });
             });
         });
@@ -609,28 +726,26 @@ class GoogleMapsService {
       avatarUrl,
     };
 
-      marker.addListener("click", async () => {
-        this.closeAllInfoWindows();
+    marker.addListener("click", async () => {
+      this.closeAllInfoWindows();
 
-        // Clear any existing selection first
-        this.clearSelection();
+      // Clear any existing selection first
+      this.clearSelection();
 
-        // Update marker to selected state (larger size)
-        const selectedIcon = await this.createAvatarMarkerIcon(avatarUrl, 50, true, isCurrentUser, user.gender);
-        marker.setIcon(selectedIcon);
+      // Tap Animation: Slight scale up (MatchSuccess Criteria)
+      const activeSize = 60;
+      const activeIcon = await this.createAvatarMarkerIcon(avatarUrl, activeSize, true, isCurrentUser, user.gender);
+      marker.setIcon(activeIcon);
 
-        // Start blinking animation for selected marker
-        this.startBlinkingAnimation(marker);
-
-        // For current user, don't show info window (no small profile modal)
+      // For current user, don't show info window (no small profile modal)
       if (isCurrentUser) {
         // Do nothing - don't show the small profile modal for current user
       } else {
         // For other users, only show bottom modal (no info window on pin)
         setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('showUserSelectionModal', {
-          detail: user
-        }));
+          window.dispatchEvent(new CustomEvent('showUserSelectionModal', {
+            detail: user
+          }));
         }, 100);
       }
     });
@@ -987,7 +1102,7 @@ class GoogleMapsService {
           left: 0;
           right: 0;
           bottom: 0;
-          background: linear-gradient(135deg, #4AC1E0 0%, #f54d6a 100%);
+          background: linear-gradient(135deg, #00C194 0%, #f54d6a 100%);
           z-index: 1;
         }
 
@@ -1021,7 +1136,7 @@ class GoogleMapsService {
         }
 
         .sophisticated-modal.current-user-modal .avatar-ring {
-          background: linear-gradient(135deg, #4AC1E0 0%, #f54d6a 100%);
+          background: linear-gradient(135deg, #00C194 0%, #f54d6a 100%);
         }
       </style>
     `;
@@ -1167,7 +1282,7 @@ class GoogleMapsService {
     if (!this.map || !this.google || !currentUserLocation || !selectedUserLocation) return;
 
     const bounds = new this.google.maps.LatLngBounds();
-    
+
     // Include both user locations
     bounds.extend(new this.google.maps.LatLng(currentUserLocation.lat, currentUserLocation.lng));
     bounds.extend(new this.google.maps.LatLng(selectedUserLocation.lat, selectedUserLocation.lng));

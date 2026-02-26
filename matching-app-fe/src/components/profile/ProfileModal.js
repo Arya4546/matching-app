@@ -1,14 +1,15 @@
-import { RiStarSmileFill } from "react-icons/ri"; 
-import { HiUsers } from "react-icons/hi"; 
-import { SiGotomeeting } from "react-icons/si"; 
-import { MdDateRange } from "react-icons/md"; 
-import { IoMdWalk } from "react-icons/io"; 
-import { MdLunchDining } from "react-icons/md"; 
-import { FaHeart } from "react-icons/fa"; 
-import { MdEmergency } from "react-icons/md"; 
-import { BiFemale } from "react-icons/bi"; 
-import { BiMale } from "react-icons/bi"; 
-import { MdOutlineDriveFileRenameOutline } from "react-icons/md"; 
+import { RiStarSmileFill } from "react-icons/ri";
+import { HiUsers } from "react-icons/hi";
+import { SiGotomeeting } from "react-icons/si";
+import { MdDateRange } from "react-icons/md";
+import { IoMdWalk } from "react-icons/io";
+import { MdLunchDining } from "react-icons/md";
+import { FaHeart } from "react-icons/fa";
+import { MdEmergency } from "react-icons/md";
+import { BiFemale } from "react-icons/bi";
+import { BiMale } from "react-icons/bi";
+import { MdOutlineDriveFileRenameOutline } from "react-icons/md";
+import { IoChevronDown, IoSearch, IoOptionsOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
@@ -17,6 +18,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import "../../styles/Modal.css";
+import "../../styles/ProfileFigma.css";
 
 const ProfileModal = ({ onClose }) => {
   const { user, logout, updateUser } = useAuth();
@@ -42,22 +44,21 @@ const ProfileModal = ({ onClose }) => {
     ].slice(0, 5)
   });
 
-  // Determine whether to use fullscreen (mobile) or quick (desktop) modal
-  const isMobile = typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)').matches : true;
-  const overlayClassName = 'modal-overlay';
-  const modalClassName = `modal ${isMobile ? 'profile-modal-fullscreen' : 'profile-modal-quick'}`;
+  // Always use fullscreen Figma design as requested by user
+  const overlayClassName = 'profile-figma-overlay';
+  const modalClassName = 'profile-modal-fullscreen';
 
   // Fetch latest user data when modal opens
   useEffect(() => {
     const fetchLatestUserData = async () => {
       try {
         const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-        
+
         if (!token) {
           console.error('No token found');
           return;
         }
-        
+
         // Get userId from JWT token
         const user = JSON.parse(localStorage.getItem('user'));
         const userId = user.id;
@@ -65,14 +66,14 @@ const ProfileModal = ({ onClose }) => {
           console.error('No user ID found in token');
           return;
         }
-        
+
         // Fetch latest user data from database
         const response = await axios.get(`/api/users/profile/${userId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         console.log('response=========', response);
         if (response.data && response.data.user) {
           setCurrentUser(response.data.user);
@@ -162,21 +163,21 @@ const ProfileModal = ({ onClose }) => {
   const confirmSave = async () => {
     try {
       const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-      
+
       if (!token) {
         alert('認証トークンが見つかりません。再度ログインしてください。');
         return;
       }
-      
+
       // Get userId from localStorage user data
       const user = JSON.parse(localStorage.getItem('user'));
       const userId = user.id;
-      
+
       if (!userId) {
         alert('ユーザーIDが見つかりません。再度ログインしてください。');
         return;
       }
-      
+
       const requestData = {
         userId: userId,
         name: editData.name,
@@ -189,9 +190,9 @@ const ProfileModal = ({ onClose }) => {
         album: editData.albumPhotos.filter(photo => photo && photo !== editData.profilePhoto).slice(0, 5), // プロフィール写真を除外、最大5枚
         profilePhoto: editData.profilePhoto
       };
-      
+
       console.log('Sending profile update request:', requestData);
-      
+
       const response = await axios.post('/api/users/update-profile', requestData, {
         headers: {
           'Content-Type': 'application/json',
@@ -209,7 +210,7 @@ const ProfileModal = ({ onClose }) => {
       setCurrentUser(response.data.user); // Update current user data
       setIsEditing(false); // Exit edit mode and return to profile display
       setShowSaveModal(false);
-      
+
     } catch (error) {
       console.error('Error updating profile:', error);
       if (error.response) {
@@ -247,33 +248,13 @@ const ProfileModal = ({ onClose }) => {
   };
 
   const modalVariants = {
-    hidden: { 
-      opacity: 0, 
-      scale: 0.3,
-      x: -100,
-      y: -100,
-      transformOrigin: "top left"
-    },
+    hidden: { opacity: 0, y: 100 },
     visible: {
       opacity: 1,
-      scale: 1,
-      x: 0,
       y: 0,
-      transition: { 
-        type: "spring", 
-        damping: 20, 
-        stiffness: 200,
-        duration: 0.6
-      },
+      transition: { type: "spring", damping: 25, stiffness: 300 }
     },
-    exit: {
-      opacity: 0,
-      scale: 0.3,
-      x: -100,
-      y: -100,
-      transformOrigin: "top left",
-      transition: { duration: 0.3 },
-    },
+    exit: { opacity: 0, y: 100, transition: { duration: 0.2 } },
   };
 
   // Stats for UI overlays
@@ -294,10 +275,10 @@ const ProfileModal = ({ onClose }) => {
   };
 
   const MEETING_REASONS = [
-    { value: "walk", label: "散歩", emoji: <IoMdWalk />, icon: "walk", color: "#4CAF50" },
-    { value: "lunch", label: "食事", emoji: <MdLunchDining />, icon: "lunch", color: "#FF6B35" },
-    { value: "meeting", label: "出会い", emoji: <FaHeart />, icon: "meeting", color: "#E91E63" },
-    { value: "urgent", label: "至急", emoji: <MdEmergency />, icon: "urgent", color: "#F44336" },
+    { value: "meeting", label: "出会い", emoji: <FaHeart />, icon: "meeting", color: "#00C194" },
+    { value: "lunch", label: "食事", emoji: <MdLunchDining />, icon: "lunch", color: "#00C194" },
+    { value: "walk", label: "散歩", emoji: <IoMdWalk />, icon: "walk", color: "#00C194" },
+    { value: "urgent", label: "緊急", emoji: <MdEmergency />, icon: "urgent", color: "#00C194" },
   ];
 
   const toggleReason = (val) => {
@@ -352,491 +333,408 @@ const ProfileModal = ({ onClose }) => {
         exit="exit"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="profile-header-section">
-          {isEditing ? (
-            <>
-              <button className="back-btn" onClick={cancelEdit}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
+        <div className="profile-figma-header-container">
+          {/* Tier 1: Global Navbar */}
+          <div className="profile-figma-navbar-global">
+            <div className="header-left">
+              <button className="profile-header-avatar-btn" style={{
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                position: 'relative',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <img
+                  src={user?.profilePhoto || "https://randomuser.me/api/portraits/men/32.jpg"}
+                  alt="Profile"
+                  className="profile-avatar"
+                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                />
+                <span className="connection-status connected" style={{
+                  position: 'absolute',
+                  bottom: -1,
+                  right: -1,
+                  width: 10,
+                  height: 10,
+                  backgroundColor: '#00C194',
+                  borderRadius: '50%',
+                  border: '2px solid white'
+                }}></span>
               </button>
-              <button className="save-btn" onClick={handleSave}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                  <polyline points="17,21 17,13 7,13 7,21"/>
-                  <polyline points="7,3 7,8 15,8"/>
-                </svg>
+            </div>
+            <div className="header-right" style={{ display: 'flex', gap: '12px' }}>
+              <button className="figma-header-btn" style={{ background: 'none', border: 'none', fontSize: 20, color: '#00C194' }}>
+                <IoSearch />
               </button>
-            </>
-          ) : (
-            <>
-              <button className="back-btn" onClick={onClose}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
+              <button className="figma-header-btn" style={{ background: 'none', border: 'none', fontSize: 20, color: '#00C194' }}>
+                <IoOptionsOutline />
               </button>
-              <button className="edit-btn" onClick={handleViewFullProfile}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </div>
+          </div>
+
+          {/* Tier 2: Action Toolbar */}
+          <div className="profile-figma-toolbar">
+            <button className="profile-figma-btn-left" onClick={isEditing ? cancelEdit : onClose}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00C194" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <button className="profile-figma-btn-right" onClick={isEditing ? handleSave : handleViewFullProfile}>
+              {isEditing ? (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00C194" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17,21 17,13 7,13 7,21" />
+                  <polyline points="7,3 7,8 15,8" />
                 </svg>
-          </button>
-            </>
-          )}
-          <div className="avatar-container">
-              <img
-                src={displayedProfilePhoto}
-                alt="プロフィール"
-              className="profile-avatar-large"
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00C194" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="profile-figma-header">
+
+          <div className="profile-figma-avatar-container">
+            <img
+              src={displayedProfilePhoto}
+              alt="プロフィール"
+              className="profile-figma-avatar"
             />
             {isEditing && (
-              <label className="camera-icon">
+              <label className="profile-figma-camera">
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(e) => handlePhotoChange(e.target.files[0], 'profile')}
                   style={{ display: 'none' }}
                 />
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2 2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00C194" strokeWidth="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2 2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
                 </svg>
               </label>
             )}
           </div>
-          {/* Snapchat-like playful badges */}
-          <div className="meeting-count-badge">
-            <span className="badge-emoji"><HiUsers /></span>
-            <span className="badge-text">{meetingCount} </span>
+
+          <div className="profile-figma-stats-left">
+            <span>{meetingCount} </span>
+            <HiUsers className="profile-figma-stat-icon" />
           </div>
-          <div className="rating-stars" aria-label={`評価 ${filledStars} / 5`}>
-            {[0,1,2,3,4].map((i) => (
-              <span key={i} className={`star${i < filledStars ? ' filled' : ''}`}><RiStarSmileFill /></span>
-            ))}
-            <span className="rating-number" title={`評価値 ${ratingNumberLabel}`}>{ratingNumberLabel}</span>
+          <div className="profile-figma-stats-right">
+            <div className="profile-figma-stars">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <RiStarSmileFill key={i} className={i < filledStars ? 'star-filled' : 'star-empty'} />
+              ))}
+            </div>
+            <span>{ratingNumberLabel}</span>
           </div>
+        </div>
+
+        <div className="profile-figma-body">
+          {/* Location Toggle (Visual UI only since no state exists yet, or you can add one) */}
+          <div className="profile-figma-toggle-row">
+            <span className="profile-figma-label-small">位置情報</span>
+            <label className="toggle-switch">
+              <input type="checkbox" defaultChecked />
+              <span className="slider round"></span>
+            </label>
+          </div>
+
+          {/* Display Name Input */}
+          <div className="profile-figma-input-group">
+            <label className="profile-figma-label">
+              表示用の名前 <MdOutlineDriveFileRenameOutline className="label-icon" />
+            </label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editData.name}
+                onChange={(e) => handleEditChange('name', e.target.value)}
+                className="profile-figma-input"
+              />
+            ) : (
+              <div className="profile-figma-input-read">{currentUser?.name || "名前なし"}</div>
+            )}
+          </div>
+
+          {/* Real Name Input (Placeholder, since DB structure might only have name. We use name for both currently or a new field) */}
+          <div className="profile-figma-input-group">
+            <label className="profile-figma-label">氏名</label>
+            {isEditing ? (
+              <input
+                type="text"
+                /* Assuming name serves as both or we introduce realName if available */
+                value={editData.name}
+                onChange={(e) => handleEditChange('name', e.target.value)}
+                className="profile-figma-input"
+              />
+            ) : (
+              <div className="profile-figma-input-read">{currentUser?.name || "名前なし"}</div>
+            )}
+          </div>
+
+          {/* Birthday and Gender Side-by-side */}
+          <div className="profile-figma-row-split">
+            <div className="profile-figma-input-group" style={{ flex: 1.5 }}>
+              <label className="profile-figma-label">誕生日</label>
+              <div className="profile-figma-input-wrapper">
+                {isEditing ? (
+                  <select
+                    value={editData.birth_year || ""}
+                    onChange={(e) => handleEditChange('birth_year', e.target.value)}
+                    className="profile-figma-input profile-figma-select"
+                  >
+                    <option value="">年を選択</option>
+                    {availableBirthYears.map(year => (
+                      <option key={year} value={year}>{year}年</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="profile-figma-input-read">
+                    {currentUser?.birth_year ? `${currentUser.birth_year}年` : "未設定"}
+                  </div>
+                )}
+                <MdDateRange className="input-right-icon" />
+              </div>
             </div>
 
-        <div className="profile-content-section">
-          <div className="user-info-card">
-                <div className="user-name-row">
-              <div className="name-section">
-                <MdOutlineDriveFileRenameOutline className="detail-icon" />
+            <div className="profile-figma-input-group" style={{ flex: 1 }}>
+              <label className="profile-figma-label">性別</label>
+              <div className="profile-figma-input-wrapper">
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={editData.name}
-                    onChange={(e) => handleEditChange('name', e.target.value)}
-                    className="edit-input"
-                    placeholder="名前を入力"
-                  />
-                        ) : (
-                          <h2 className="detail-text">{currentUser?.name || "名前なし"}</h2>
-                        )}
-              </div>
-              <div className="gender-selector" style={{ position: 'relative' }}>
-                {isEditing ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setShowGenderDropdown(!showGenderDropdown)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        // gap: 8,
-                        padding: '8px 12px',
-                        border: '1px solid #e8eaed',
-                        borderRadius: 8,
-                        background: '#ffffff',
-                        cursor: 'pointer',
-                        // minWidth: 120
-                      }}
-                    >
-                      {getGenderIcon(editData.gender) && (
-                        <img 
-                          src={getGenderIcon(editData.gender)} 
-                          // alt={editData.gender === 'male' ? '男性' : editData.gender === 'female' ? '女性' : 'その他'}
-                          style={{ width: 24, height: 24, objectFit: 'contain' }}
-                        />
-                      )}
-                      <span style={{ fontSize: 14, color: '#333' }}>
-                        {editData.gender === 'male' ? '' : editData.gender === 'female' ? '' : ''}
-                      </span>
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: 'auto' }}>
-                        <path d="M3 4.5L6 7.5L9 4.5" />
-                      </svg>
-                    </button>
-                    {showGenderDropdown && (
-                      <>
-                        <div
-                          style={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            zIndex: 998
-                          }}
-                          onClick={() => setShowGenderDropdown(false)}
-                        />
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: '100%',
-                            left: 0,
-                            marginTop: 4,
-                            background: '#ffffff',
-                            border: '1px solid #e8eaed',
-                            borderRadius: 8,
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                            zIndex: 999,
-                            // minWidth: 120,
-                            overflow: 'hidden'
-                          }}
-                        >
-                          {[
-                            { value: 'male', label: '', icon: '/img/male.png' },
-                            { value: 'female', label: '', icon: '/img/female.png' },
-                            { value: 'other', label: '', icon: '/img/other.png' }
-                          ].map((option) => (
-                            <button
-                              key={option.value}
-                              type="button"
-                              onClick={() => {
-                                handleEditChange('gender', option.value);
-                                setShowGenderDropdown(false);
-                              }}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 8,
-                                width: '100%',
-                                padding: '10px 12px',
-                                border: 'none',
-                                background: editData.gender === option.value ? '#f0f9ff' : '#ffffff',
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                transition: 'background 0.2s'
-                              }}
-                              onMouseEnter={(e) => {
-                                if (editData.gender !== option.value) {
-                                  e.currentTarget.style.background = '#f9fafb';
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (editData.gender !== option.value) {
-                                  e.currentTarget.style.background = '#ffffff';
-                                }
-                              }}
-                            >
-                              <img 
-                                src={option.icon} 
-                                alt={option.label}
-                                style={{ width: 24, height: 24, objectFit: 'contain' }}
-                              />
-                              <span style={{ fontSize: 14, color: '#333' }}>{option.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </>
+                  <select
+                    value={editData.gender}
+                    onChange={(e) => handleEditChange('gender', e.target.value)}
+                    className="profile-figma-input profile-figma-select"
+                  >
+                    <option value="male">男性</option>
+                    <option value="female">女性</option>
+                    <option value="other">その他</option>
+                  </select>
                 ) : (
-                  <span className="gender-display" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {getGenderIcon(editData.gender) && (
-                      <img 
-                        src={getGenderIcon(editData.gender)} 
-                        alt={editData.gender === 'male' ? '男性' : editData.gender === 'female' ? '女性' : 'その他'}
-                        style={{ width: 24, height: 24, objectFit: 'contain' }}
-                      />
-                    )}
-                  </span>
-                )}
-              </div>
-                </div>
-            
-            <div className="user-details">
-              <div className="detail-item">
-                {/* <svg className="detail-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                </svg> */}
-                
-                <span className="detail-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><MdDateRange /> </span>
-                {isEditing ? (
-                  <>
-                    <span className="detail-text" style={{ marginRight: 8 }}>生年 : </span>
-                    <select
-                      value={editData.birth_year || ""}
-                      onChange={(e) => handleEditChange('birth_year', e.target.value ? parseInt(e.target.value, 10) : "")}
-                      className="gender-select"
-                    >
-                      <option value="">生年を選択</option>
-                      {availableBirthYears.map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                  </>
-                ) : (
-                  <span className="detail-text">{currentUser?.birth_year ? `生年 : ${currentUser.birth_year} 年` : "生年 未設定"}</span>
-                )}
-              </div>
-              
-              <div className="detail-item" style={{ alignItems: 'center' }}>
-                <svg className="detail-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="9"/>
-                </svg>
-                {isEditing ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <button
-                      type="button"
-                      onClick={openReasonsModal}
-                      style={{
-                        padding: '8px 12px',
-                        borderRadius: 8,
-                        background: '#4AC1E0',
-                        color: '#fff',
-                        border: 'none',
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                      }}
-                    >
-                      マッチング条件
-                    </button>
-                    <span style={{ color: '#6b7280', fontSize: 13 }}>
-                      {editData.status?.length || 0} 件選択中
-                    </span>
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {(Array.isArray(currentUser?.status) ? currentUser.status : (currentUser?.status ? [currentUser.status] : [])).length > 0 ? (
-                      (Array.isArray(currentUser?.status) ? currentUser.status : [currentUser.status]).map(val => {
-                        const r = MEETING_REASONS.find(x => x.value === val);
-                        if (!r) return null;
-                        return (
-                          <span
-                            key={val}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              padding: '6px 10px',
-                              borderRadius: 9999,
-                              border: `1px solid ${r.color}`,
-                              background: '#ffffff',
-                              color: r.color
-                            }}
-                          >
-                            <span style={{ display: 'inline-flex', fontSize: 16, color: r.color }}>{r.emoji}</span>
-                            <span style={{ fontSize: 13 }}>{r.label}</span>
-                          </span>
-                        );
-                      })
-                    ) : (
-                      <span className="detail-text">会いたい理由 未設定</span>
-                    )}
+                  <div className="profile-figma-input-read">
+                    {editData.gender === 'male' ? '男性' : editData.gender === 'female' ? '女性' : 'その他'}
                   </div>
                 )}
+                <span className="input-right-icon" style={{ fontSize: '18px', display: 'flex' }}>
+                  {(editData.gender === 'male' || !editData.gender) ? <BiMale style={{ color: '#3B82F6' }} /> : editData.gender === 'female' ? <BiFemale style={{ color: '#EC4899' }} /> : ''}
+                  {isEditing && <IoChevronDown style={{ fontSize: '12px', marginLeft: '2px', color: '#9CA3AF' }} />}
+                </span>
               </div>
             </div>
           </div>
+          <div style={{ height: '32px' }}></div>
 
-          <div className="about-me-section">
-            {/* <h3 className="section-title">About me</h3> */}
+          {/* Meeting Reasons as Circular Buttons */}
+          <div className="profile-figma-reasons-row">
+            {MEETING_REASONS.map((r) => {
+              const active = isEditing ? editData.status.includes(r.value) : (currentUser?.status || []).includes(r.value);
+              return (
+                <button
+                  key={r.value}
+                  className={`profile-figma-reason-btn ${active ? 'active' : ''}`}
+                  onClick={() => isEditing && toggleReason(r.value)}
+                  disabled={!isEditing}
+                >
+                  <div className="reason-icon-wrapper">
+                    {r.emoji}
+                  </div>
+                  <span className="reason-label">{r.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Bio Section */}
+          <div className="profile-figma-input-group">
+            <label className="profile-figma-label">
+              自己紹介 <MdOutlineDriveFileRenameOutline className="label-icon" />
+            </label>
             {isEditing ? (
               <textarea
                 value={editData.bio}
                 onChange={(e) => handleEditChange('bio', e.target.value)}
-                className="edit-textarea"
-                placeholder="自己紹介を入力"
+                className="profile-figma-textarea"
                 rows="3"
               />
-                    ) : (
-                      <p className="about-text">{currentUser?.bio || "自己紹介がありません"}</p>
-                    )}
-                </div>
+            ) : (
+              <div className="profile-figma-textarea-read">{currentUser?.bio || "自己紹介がありません"}</div>
+            )}
+          </div>
 
-          <div className="album-section">
-            <h3 className="section-title">アルバム (最大5枚)</h3>
-            <div className="album-scroll-container">
-              <div className="album-scroll">
-                {isEditing ? (
-                  <>
-                    {editData.albumPhotos.map((photo, index) => (
-                      <div key={index} className="album-item">
-                        {photo ? (
-                          <div className="album-photo-wrapper">
-                            <img src={photo} alt={`写真${index + 1}`} />
-                            <div className="album-actions">
-                              <button
-                                type="button"
-                                className="album-action-btn view-btn"
-                                onClick={() => handleViewPhoto(photo)}
-                                title="プレビュー"
-                              >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                  <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                className="album-action-btn delete-btn"
-                                onClick={() => handleDeletePhoto(index)}
-                                title="削除"
-                              >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <polyline points="3 6 5 6 21 6"/>
-                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                  </svg>
-                              </button>
-                            </div>
-                </div>
-                        ) : (
-                          <label className="album-add-item">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handlePhotoChange(e.target.files[0], 'album', index)}
-                              style={{ display: 'none' }}
-                            />
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="12" r="10"/>
-                              <line x1="12" y1="8" x2="12" y2="16"/>
-                              <line x1="8" y1="12" x2="16" y2="12"/>
-                  </svg>
-                            <span className="add-text">追加</span>
-                          </label>
-                        )}
-                      </div>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {(currentUser?.album || []).map((photo, index) => (
-                      <div key={index} className="album-item">
-                        <img src={photo} alt={`写真${index + 1}`} onClick={() => handleViewPhoto(photo)} style={{cursor: 'pointer'}} />
-                      </div>
-                    ))}
-                    {(!currentUser?.album || currentUser.album.length === 0) && (
-                      <p className="no-album-text">アルバムに写真がありません</p>
-                    )}
-                  </>
-                )}
-                </div>
-              </div>
+          {/* Album Section */}
+          <div className="profile-figma-album-header">
+            <span className="profile-figma-label-bold">アルバム（最大5枚）</span>
+            <div className="profile-figma-toggle-row-inline">
+              <span className="profile-figma-label-small">アルバムを隠す</span>
+              <label className="toggle-switch small">
+                <input type="checkbox" />
+                <span className="slider round"></span>
+              </label>
             </div>
           </div>
 
-        <AnimatePresence>
-          {showSaveModal && (
-            <motion.div
-              className="save-confirmation-modal"
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            >
-              <div className="save-modal-content">
-                <h3>変更を保存しますか？</h3>
-                <div className="save-modal-actions">
-                  <button className="cancel-btn" onClick={() => setShowSaveModal(false)}>
-                    キャンセル
-                  </button>
-                  <button className="confirm-btn" onClick={confirmSave}>
-                    保存
-                  </button>
+          <div className={`profile-figma-album-grid ${(!isEditing && (!currentUser?.album || currentUser.album.length === 0)) ? 'empty' : ''}`}>
+            {isEditing ? (
+              <>
+                {editData.albumPhotos.map((photo, index) => (
+                  <div key={index} className="album-item">
+                    {photo ? (
+                      <div className="album-photo-wrapper">
+                        <img src={photo} alt={`写真${index + 1}`} />
+                        <div className="album-actions">
+                          <button type="button" className="album-action-btn delete-btn" onClick={() => handleDeletePhoto(index)}>X</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="album-add-item">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handlePhotoChange(e.target.files[0], 'album', index)}
+                          style={{ display: 'none' }}
+                        />
+                        <span className="add-plus">+</span>
+                      </label>
+                    )}
+                  </div>
+                ))}
+              </>
+            ) : (
+              <>
+                {currentUser?.album && currentUser.album.length > 0 ? (
+                  currentUser.album.map((photo, index) => (
+                    <div key={index} className="album-item">
+                      <img src={photo} alt={`写真${index + 1}`} onClick={() => handleViewPhoto(photo)} style={{ cursor: 'pointer' }} />
+                    </div>
+                  ))
+                ) : (
+                  <div className="profile-figma-album-fallback">写真がありません</div>
+                )}
+              </>
+            )}
           </div>
-        </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
-        <AnimatePresence>
-          {viewingPhoto && (
-            <motion.div
-              className="photo-viewer-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closePhotoViewer}
-            >
-              <motion.div
-                className="photo-viewer-content"
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0.8 }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button className="close-viewer-btn" onClick={closePhotoViewer}>
-                  <X size={24} />
-                </button>
-                <img src={viewingPhoto} alt="プレビュー" />
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Reasons Selection Modal */}
-        <AnimatePresence>
-          {showReasonsModal && (
-            <motion.div
-              className="photo-viewer-overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={cancelReasons}
-            >
+          <AnimatePresence>
+            {showSaveModal && (
               <motion.div
                 className="save-confirmation-modal"
                 initial={{ y: "100%" }}
                 animate={{ y: 0 }}
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                onClick={(e) => e.stopPropagation()}
-                style={{ maxWidth: 560, width: '92%', margin: '0 auto', borderRadius: 12 }}
               >
                 <div className="save-modal-content">
-                  <h3>マッチング条件</h3>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
-                    {MEETING_REASONS.map(r => {
-                      const active = tempReasons?.includes(r.value);
-                      return (
-                        <button
-                          key={r.value}
-                          type="button"
-                          onClick={() => toggleTempReason(r.value)}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            padding: '8px 12px',
-                            borderRadius: 9999,
-                            border: `2px solid ${active ? r.color : '#e5e7eb'}`,
-                            background: active ? '#ffffff' : '#f9fafb',
-                            boxShadow: active ? `0 4px 12px ${r.color}40` : 'none',
-                            color: active ? r.color : '#374151',
-                            cursor: 'pointer'
-                          }}
-                          title={r.label}
-                        >
-                          <span style={{ display: 'inline-flex', fontSize: 18 }}>{r.emoji}</span>
-                          <span style={{ fontSize: 14 }}>{r.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="save-modal-actions" style={{ marginTop: 16 }}>
-                    <button className="cancel-btn" onClick={cancelReasons}>キャンセル</button>
-                    <button className="confirm-btn" onClick={confirmReasons}>決定</button>
+                  <h3>変更を保存しますか？</h3>
+                  <div className="save-modal-actions">
+                    <button className="cancel-btn" onClick={() => setShowSaveModal(false)}>
+                      キャンセル
+                    </button>
+                    <button className="confirm-btn" onClick={confirmSave}>
+                      保存
+                    </button>
                   </div>
                 </div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {viewingPhoto && (
+              <motion.div
+                className="photo-viewer-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={closePhotoViewer}
+              >
+                <motion.div
+                  className="photo-viewer-content"
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0.8 }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button className="close-viewer-btn" onClick={closePhotoViewer}>
+                    <X size={24} />
+                  </button>
+                  <img src={viewingPhoto} alt="プレビュー" />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Reasons Selection Modal */}
+          <AnimatePresence>
+            {showReasonsModal && (
+              <motion.div
+                className="photo-viewer-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={cancelReasons}
+              >
+                <motion.div
+                  className="save-confirmation-modal"
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ maxWidth: 560, width: '92%', margin: '0 auto', borderRadius: 12 }}
+                >
+                  <div className="save-modal-content">
+                    <h3>マッチング条件</h3>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
+                      {MEETING_REASONS.map(r => {
+                        const active = tempReasons?.includes(r.value);
+                        return (
+                          <button
+                            key={r.value}
+                            type="button"
+                            onClick={() => toggleTempReason(r.value)}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              padding: '8px 12px',
+                              borderRadius: 9999,
+                              border: `2px solid ${active ? r.color : '#e5e7eb'}`,
+                              background: active ? '#ffffff' : '#f9fafb',
+                              boxShadow: active ? `0 4px 12px ${r.color}40` : 'none',
+                              color: active ? r.color : '#374151',
+                              cursor: 'pointer'
+                            }}
+                            title={r.label}
+                          >
+                            <span style={{ display: 'inline-flex', fontSize: 18 }}>{r.emoji}</span>
+                            <span style={{ fontSize: 14 }}>{r.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="save-modal-actions" style={{ marginTop: 16 }}>
+                      <button className="cancel-btn" onClick={cancelReasons}>キャンセル</button>
+                      <button className="confirm-btn" onClick={confirmReasons}>決定</button>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </motion.div>
-    </motion.div>
+    </motion.div >
   );
 };
 

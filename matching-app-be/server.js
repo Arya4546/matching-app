@@ -38,6 +38,7 @@ console.log('══════════════════════�
 // Connect to database with logging
 connectDB();
 
+app.set('trust proxy', 1);
 app.use(helmet());
 
 // Enhanced Morgan logging for development

@@ -45,7 +45,7 @@
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #4AC1E0;
+  border: 3px solid #00C194;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
 }
@@ -58,7 +58,7 @@
   position: absolute;
   bottom: 0px;
   right: 3px;
-  background: #4AC1E0;
+  background: #00C194;
   border: none;
   width: 36px;
   height: 36px;
@@ -98,7 +98,7 @@
   display: block;
   font-size: 32px;
   font-weight: 700;
-  color: #4AC1E0;
+  color: #00C194;
   margin-bottom: 8px;
   line-height: 1;
 }
@@ -154,7 +154,7 @@
 .form-section input:focus,
 .form-section textarea:focus {
   outline: none;
-  border-color: #4AC1E0;
+  border-color: #00C194;
   box-shadow: 0 0 0 2px rgba(74, 193, 224, 0.1);
   background: #ffffff;
 }
@@ -213,8 +213,8 @@
 /* Button Variants for Profile */
 .btn-outline {
   background: transparent;
-  color: #4AC1E0;
-  border: 2px solid #4AC1E0;
+  color: #00C194;
+  border: 2px solid #00C194;
   border-radius: 25px;
 }
 
@@ -246,7 +246,7 @@
   transform: translateX(-50%);
   width: 40px;
   height: 3px;
-  background: #4AC1E0;
+  background: #00C194;
   border-radius: 2px;
 }
 
@@ -262,12 +262,12 @@
 
 .form-section:hover {
   background: #ffffff;
-  border-color: #4AC1E0;
+  border-color: #00C194;
 }
 
 .form-section:focus-within {
   background: #ffffff;
-  border-color: #4AC1E0;
+  border-color: #00C194;
   box-shadow: 0 0 0 2px rgba(74, 193, 224, 0.1);
 }
 
@@ -371,7 +371,7 @@
 }
 
 .profile-card::-webkit-scrollbar-thumb {
-  background: #4AC1E0;
+  background: #00C194;
   border-radius: 4px;
 }
 

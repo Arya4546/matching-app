@@ -1,0 +1,545 @@
+/* ProfileFigma.css - Exact matching styles for Figma profile view */
+
+.profile-figma-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: white;
+    /* Hide map completely - very high z-index to cover global header */
+    z-index: 20000;
+    overflow-y: auto;
+}
+
+.profile-modal-fullscreen {
+    background: white;
+    margin: 0;
+    min-height: 100vh;
+    width: 100vw;
+    border-radius: 0;
+    position: relative;
+    z-index: 20001;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-figma-header-container {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 10001;
+    background: white;
+}
+
+.profile-figma-navbar-global {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: white;
+    height: 60px;
+    border-bottom: 1px solid #F3F4F6;
+}
+
+.profile-figma-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 20px;
+    background: #E6FAF5;
+    /* Light green tier */
+    height: 56px;
+}
+
+.profile-figma-header {
+    background: linear-gradient(180deg, #E6FAF5 0%, #F5FCFA 100%);
+    height: 150px;
+    /* ✅ smaller */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    /* Removed z-index to allow child avatar to pop out of stacking context */
+    padding-top: 20px;
+    /* ✅ reduce */
+}
+
+/* Toolbar buttons positioned by flex */
+
+.profile-figma-btn-left,
+.profile-figma-btn-right {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    z-index: 20;
+}
+
+.profile-figma-avatar-container {
+    position: absolute;
+    bottom: 50px;
+    /* Moved up as requested */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    padding: 4px;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F3FBFA 100%);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+    z-index: 11000;
+    /* Higher than header-container (10001) */
+}
+
+.profile-figma-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid white;
+}
+
+.profile-figma-camera {
+    position: absolute;
+    top: 10px;
+    right: 0px;
+    background: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.profile-figma-stats-left {
+    position: absolute;
+    bottom: 20px;
+    /* ✅ raised */
+    left: 16px;
+    /* Nudged out to clear icons from avatar border */
+    background: white;
+    padding: 6px 14px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6B7280;
+    border: 1px solid #E5E7EB;
+    z-index: 15;
+}
+
+.profile-figma-stat-icon {
+    color: #9CA3AF;
+    font-size: 16px;
+}
+
+.profile-figma-stats-right {
+    position: absolute;
+    bottom: 20px;
+    /* ✅ raised */
+    right: 16px;
+    /* Nudged out to clear stars from avatar border */
+    background: white;
+    padding: 6px 14px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6B7280;
+    border: 1px solid #E5E7EB;
+    z-index: 15;
+}
+
+.profile-figma-stars {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+.star-filled {
+    color: #F59E0B;
+    /* ✅ stronger amber */
+    font-size: 16px;
+    /* ✅ slightly bigger */
+}
+
+.star-empty {
+    color: #CBD5E1;
+    /* Darker for visibility */
+    font-size: 16px;
+}
+
+.profile-figma-body {
+    flex: 1;
+    background: white;
+    padding: 70px 24px 60px;
+    /* Reduced bottom padding from 140px */
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Toggle row */
+.profile-figma-toggle-row {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0;
+}
+
+.profile-figma-label-small {
+    font-size: 14px;
+    color: #374151;
+    font-weight: bold;
+}
+
+/* Switch Styles */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+}
+
+.toggle-switch.small {
+    width: 40px;
+    height: 20px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #E5E7EB;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch.small .slider:before {
+    height: 16px;
+    width: 16px;
+}
+
+input:checked+.slider {
+    background-color: #00C194;
+}
+
+input:checked+.slider:before {
+    transform: translateX(22px);
+}
+
+.toggle-switch.small input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+.slider.round {
+    border-radius: 24px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+/* Inputs */
+.profile-figma-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.profile-figma-label {
+    font-size: 14px;
+    color: #6B7280;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.label-icon {
+    color: #00C194;
+    font-size: 16px;
+}
+
+.profile-figma-input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid #c7ece3;
+    /* Light green tint */
+    font-size: 16px;
+    color: #1F2937;
+    outline: none;
+    background: white;
+}
+
+.profile-figma-input:focus {
+    border-color: #00C194;
+}
+
+.profile-figma-input-read {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid #c7ece3;
+    font-size: 16px;
+    color: #1F2937;
+    background: white;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+}
+
+.profile-figma-row-split {
+    display: flex;
+    gap: 16px;
+}
+
+.profile-figma-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.profile-figma-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: white;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2300C194' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    width: 100%;
+    padding: 14px 48px 14px 16px;
+    border-radius: 8px;
+    border: 1px solid #c7ece3;
+    font-size: 16px;
+    color: #1F2937;
+    outline: none;
+    cursor: pointer;
+}
+
+.profile-figma-select:focus {
+    border-color: #00C194;
+}
+
+.input-right-icon {
+    position: absolute;
+    right: 14px;
+    color: #00C194;
+    pointer-events: none;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    /* 🔥 KEY FIX */
+}
+
+/* Meeting Reasons Row */
+.profile-figma-reasons-row {
+    display: flex;
+    justify-content: space-around;
+    /* 🔥 KEY */
+    padding: 18px 0;
+    border-bottom: 1px solid #F3F4F6;
+    border-top: 1px solid #F3F4F6;
+    margin: 10px 0;
+}
+
+.profile-figma-reason-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.reason-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid #00C194;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #00C194;
+    background: white;
+    transition: all 0.2s;
+}
+
+.profile-figma-reason-btn.active .reason-icon-wrapper {
+    background: #00C194;
+    color: white;
+}
+
+.reason-label {
+    font-size: 12px;
+    color: #4B5563;
+    font-weight: 500;
+}
+
+.profile-figma-reason-btn.active .reason-label {
+    color: #00C194;
+    font-weight: bold;
+}
+
+/* Textarea */
+.profile-figma-textarea {
+    width: 100%;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #c7ece3;
+    font-size: 14px;
+    color: #1F2937;
+    outline: none;
+    resize: none;
+    min-height: 80px;
+}
+
+.profile-figma-textarea-read {
+    width: 100%;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #c7ece3;
+    font-size: 14px;
+    color: #1F2937;
+    white-space: pre-wrap;
+    min-height: 80px;
+}
+
+/* Album */
+.profile-figma-album-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.profile-figma-label-bold {
+    font-size: 14px;
+    font-weight: bold;
+    color: #1F2937;
+}
+
+.profile-figma-toggle-row-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-figma-album-grid {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    /* Reduced from 20px */
+}
+
+.profile-figma-album-grid.empty {
+    padding-bottom: 0;
+}
+
+.profile-figma-album-fallback {
+    width: 100%;
+    padding: 24px 0;
+    /* Reduced from 32px */
+    text-align: center;
+    color: #9CA3AF;
+    font-size: 14px;
+    background: #F9FAFB;
+    border-radius: 12px;
+    border: 1px dashed #E5E7EB;
+}
+
+.album-item {
+    width: 90px;
+    height: 90px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    background: #F3F4F6;
+}
+
+.album-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.album-add-item {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid #c7ece3;
+    border-radius: 12px;
+    background: white;
+}
+
+.add-plus {
+    font-size: 24px;
+    color: #00C194;
+}
+
+.album-actions {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+}
+
+.album-action-btn.delete-btn {
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

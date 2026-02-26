@@ -1,9 +1,10 @@
-import { HiUserGroup } from "react-icons/hi"; 
-import { RiUserHeartFill } from "react-icons/ri"; 
-import { HiUsers } from "react-icons/hi"; 
-import { FaListUl } from "react-icons/fa"; 
-import { BiListUl } from "react-icons/bi"; 
-import { CgPlayList } from "react-icons/cg"; 
+import { HiUserGroup } from "react-icons/hi";
+import { RiUserHeartFill } from "react-icons/ri";
+import { HiUsers } from "react-icons/hi";
+import { FaListUl } from "react-icons/fa";
+import { BiListUl } from "react-icons/bi";
+import { CgPlayList } from "react-icons/cg";
+import { IoSearch, IoOptionsOutline } from "react-icons/io5";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
@@ -138,7 +139,7 @@ const MapView = () => {
           );
 
           setMapLoaded(true);
-          
+
           // Save initial map state after a short delay to ensure map is fully rendered
           setTimeout(() => {
             if (window.googleMapsService && window.googleMapsService.map) {
@@ -181,31 +182,31 @@ const MapView = () => {
         lat: selectedUserForModal.location.coordinates[1],
         lng: selectedUserForModal.location.coordinates[0]
       };
-      
+
       GoogleMapsService.setMapToShowTwoUsers(currentLocation, selectedUserLocation);
       GoogleMapsService.showExclamationMark(selectedUserLocation);
       console.log('✅ Map centered on both users:', currentLocation, selectedUserLocation);
     } else if (!showUserSelection && !selectedUserForModal) {
       // Modal is closed - hide exclamation mark and check if we should restore to original state
       GoogleMapsService.hideExclamationMark();
-      
+
       // Only do this if the modal is not currently restoring (to avoid conflicts)
       const isModalRestoring = document.querySelector('.user-selection-modal')?.getAttribute('data-restoring') === 'true';
-      
+
       if (!isModalRestoring) {
         // Modal is not restoring, so we can safely restore to original state
         if (originalMapState.current) {
           const map = window.googleMapsService.map;
           const { center, zoom, bounds } = originalMapState.current;
-          
+
           console.log('🔄 MapView restoring to original state:', originalMapState.current);
-          
+
           if (center && zoom) {
             map.setCenter(center);
             map.setZoom(zoom);
             console.log('✅ MapView restored original center and zoom');
           }
-          
+
           if (bounds && !bounds.isEmpty()) {
             setTimeout(() => {
               map.fitBounds(bounds);
@@ -378,7 +379,7 @@ const MapView = () => {
     if (mapLoaded && usersWithinRadius.length > 0 && hasSearchedNearbyUsers) {
       // Clear existing user markers except current user
       GoogleMapsService.clearAllUserMarkers();
-      
+
       // Create markers for users within 100km radius
       usersWithinRadius.forEach((user) => {
         if (user.location && user.location.coordinates) {
@@ -388,7 +389,7 @@ const MapView = () => {
 
       // Fit map to show all users within radius
       GoogleMapsService.fitMapToShowAllUsers(usersWithinRadius, currentLocation);
-      
+
       // Update original map state after fitting to show all users
       if (window.googleMapsService && window.googleMapsService.map) {
         const map = window.googleMapsService.map;
@@ -502,7 +503,7 @@ const MapView = () => {
       const selectedUser = event.detail;
       setSelectedUserForModal(selectedUser);
       setShowUserSelection(true);
-      
+
       // Center map on both current user and selected user
       if (currentLocation && selectedUser && selectedUser.location) {
         const currentUserLocation = {
@@ -513,7 +514,7 @@ const MapView = () => {
           lat: selectedUser.location.coordinates[1],
           lng: selectedUser.location.coordinates[0]
         };
-        
+
         GoogleMapsService.setMapToShowTwoUsers(currentUserLocation, selectedUserLocation);
       }
     };
@@ -522,7 +523,7 @@ const MapView = () => {
       const { location, name, address } = event.detail;
       // Center map on the selected location
       GoogleMapsService.centerOnLocation(location, 16);
-      
+
       // Create a temporary marker for the selected location
       GoogleMapsService.createMarker(location, {
         title: name,
@@ -715,19 +716,19 @@ const MapView = () => {
   const realtimeUsers = usersWithinRadius.length > 0 ? usersWithinRadius : nearbyUsers;
   const currentUserEntry = (user && currentLocation)
     ? {
-        id: user.id || "current-user",
-        _id: user._id,
-        name: user.name || "You",
-        profilePhoto: user.profilePhoto,
-        location: { coordinates: [currentLocation.lng, currentLocation.lat] },
-        gender: user.gender,
-        address: user.address,
-        phoneNumber: user.phoneNumber,
-        bio: user.bio,
-        matchCount: user.matchCount,
-        actualMeetCount: user.actualMeetCount,
-        isCurrentUser: true,
-      }
+      id: user.id || "current-user",
+      _id: user._id,
+      name: user.name || "You",
+      profilePhoto: user.profilePhoto,
+      location: { coordinates: [currentLocation.lng, currentLocation.lat] },
+      gender: user.gender,
+      address: user.address,
+      phoneNumber: user.phoneNumber,
+      bio: user.bio,
+      matchCount: user.matchCount,
+      actualMeetCount: user.actualMeetCount,
+      isCurrentUser: true,
+    }
     : null;
   const realtimeUsersWithSelf = currentUserEntry
     ? [currentUserEntry, ...realtimeUsers]
@@ -739,93 +740,62 @@ const MapView = () => {
   return (
     <div className="map-container">
       <AnimatePresence>
-      {(!showUserSelection || isDesktop) && (
-      <motion.div
-        className="map-header"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: -20, opacity: 0 }}
-        transition={{ duration: 0.25 }}
-      >
-        <div className="header-left">
-          <motion.button
-            className="menu-btn"
-            onClick={() => setShowProfile(!showProfile)}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+        {(!showUserSelection || isDesktop) && (
+          <motion.div
+            className="map-header"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            transition={{ duration: 0.25 }}
           >
-            <img
-              src={
-                user?.profilePhoto ||
-                "https://randomuser.me/api/portraits/men/32.jpg"
-              }
-              alt={`${user?.name || "User"}'s Profile`}
-              className="profile-avatar"
-            />
-            <span
-              className={`connection-status ${
-                connected ? "connected" : "disconnected"
-              }`}
-            ></span>
-          </motion.button>
-        </div>
+            <div className="header-left">
+              <motion.button
+                className="menu-btn"
+                onClick={() => setShowProfile(!showProfile)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <img
+                  src={
+                    user?.profilePhoto ||
+                    "https://randomuser.me/api/portraits/men/32.jpg"
+                  }
+                  alt={`${user?.name || "User"}'s Profile`}
+                  className="profile-avatar"
+                />
+                <span
+                  className={`connection-status ${connected ? "connected" : "disconnected"
+                    }`}
+                >
+                  <span className="status-indicator"></span>
+                </span>
+              </motion.button>
+            </div>
 
-        <div className="header-center">
-          <h2>マッチアプリ</h2>
-        </div>
+            <div className="header-center">
+              {/* Title removed according to Figma */}
+            </div>
 
-        <div className="header-right">
-          <motion.button
-            className={`refresh-btn ${isRefreshing ? "refreshing" : ""} ${
-              refreshComplete ? "complete" : ""
-            }`}
-            onClick={handleLocationRefresh}
-            disabled={isRefreshing}
-            whileHover={{ scale: isRefreshing ? 1 : 1.05 }}
-            whileTap={{ scale: isRefreshing ? 1 : 0.95 }}
-            title={isRefreshing ? "更新中..." : "位置を更新"}
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={isRefreshing ? "rotating" : ""}
-            >
-              <polyline points="23 4 23 10 17 10"></polyline>
-              <polyline points="1 20 1 14 7 14"></polyline>
-              <path d="m3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-            </svg>
-          </motion.button>
-          <motion.button
-            className="logout-btn"
-            onClick={logout}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            title="ログアウト"
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-              <polyline points="16 17 21 12 16 7"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-          </motion.button>
-        </div>
-      </motion.div>
-      )}
+            <div className="header-right">
+              <motion.button
+                className="figma-header-btn"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <IoSearch />
+              </motion.button>
+
+              <motion.button
+                className="figma-header-btn"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleUserPanel}
+              >
+                <IoOptionsOutline />
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <div className="map-content">
@@ -835,115 +805,37 @@ const MapView = () => {
           style={{ height: "100%", width: "100%" }}
         />
 
-        {/* <AnimatePresence>
-        {!(showUserSelection || showProfile) && !isRealtimeListHidden && (
-          <motion.div
-            className="realtime-user-list"
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 20, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <div className="realtime-user-list-header">
-              <span><HiUserGroup /></span>
-              <button
-                className="realtime-user-list-close-btn"
-                onClick={() => setIsRealtimeListHidden(true)}
-                title="非表示"
-              >
-                <CgPlayList />
-              </button>
-            </div>
-            <div className="realtime-user-list-body">
-              {realtimeUsersWithSelf && realtimeUsersWithSelf.length > 0 ? (
-                realtimeUsersWithSelf.map((u) => (
-                  <button
-                    key={u.id || u._id}
-                    className="realtime-user-item"
-                    onClick={() => {
-                      const isSelf = !!(
-                        u?.isCurrentUser ||
-                        (user?.id && u?.id && u.id === user.id) ||
-                        (user?._id && u?._id && u._id === user._id) ||
-                        u?.id === 'current-user'
-                      );
-                      if (isSelf) return;
-                      setSelectedUserForModal(u);
-                      setShowUserSelection(true);
-                    }}
-                    title={u.name}
-                  >
-                    <img
-                      className="realtime-user-avatar"
-                      src={u.profilePhoto || "https://randomuser.me/api/portraits/men/32.jpg"}
-                      alt={u.name}
-                    />
-                    <span className="realtime-user-name">{u.name || 'ユーザー'}</span>
-                  </button>
-                ))
-              ) : (
-                <div className="realtime-user-empty">ユーザーがいません</div>
-              )}
-            </div>
-          </motion.div>
-        )}
-        </AnimatePresence> */}
-
-        {/* <AnimatePresence>
-        {!(showUserSelection || showProfile) && isRealtimeListHidden && (
-          <motion.button
-            className="realtime-user-list-show-btn"
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 20, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            onClick={() => setIsRealtimeListHidden(false)}
-            title="近くのユーザーを表示"
-          >
-           <FaListUl /> <HiUsers />
-          </motion.button>
-        )}
-        </AnimatePresence> */}
-
-        {/* <motion.button
-          className="user-panel-toggle"
-          onClick={toggleUserPanel}
-          title={
-            hasSearchedNearbyUsers
-              ? "100km以内のユーザーを表示するにはクリック"
-              : "近くのユーザーを検索するにはクリック"
-          }
+        <motion.button
+          className="figma-recenter-btn"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={handleLocationRefresh}
+          title="現在地に戻る"
         >
-          <svg
-            className="search-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" fill="currentColor" />
           </svg>
-          <span className="search-text">
-            {hasSearchedNearbyUsers
-              ? `100km以内に : ${radiusUserCount}人`
-              : "近くのユーザーを検索"}
-          </span>
-          <svg
-            className="microphone-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-            <line x1="12" y1="19" x2="12" y2="23"></line>
-            <line x1="8" y1="23" x2="16" y2="23"></line>
-          </svg>
-        </motion.button> */}
+        </motion.button>
+
+        <motion.button
+          className="figma-zoom-btn"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => {
+            // Optional: add actual zoom logic here if needed
+            // For now, it just matches the figma visual
+          }}
+          title="検索"
+        >
+          <IoSearch />
+          <span className="zoom-plus-mini">+</span>
+        </motion.button>
+
+
+
+
+
+
       </div>
 
       <AnimatePresence>
