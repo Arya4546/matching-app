@@ -6,6 +6,7 @@ const {
   getUserProfile,
   updateProfile,
   setOnlineStatus,
+  getAvailabilityStatus,
   getAllUsers,
   nearbyUsersValidation,
   locationValidation,
@@ -15,11 +16,12 @@ const {
 const router = express.Router();
 
 router.get('/nearby', auth, nearbyUsersValidation, getNearbyUsers);
-router.get('/all', getAllUsers);
+router.get('/all', auth, getAllUsers);
 router.post('/update-location', auth, locationValidation, updateLocation);
-router.get('/profile/:id',  getUserProfile);
+router.get('/profile/:id', auth, getUserProfile);
 router.put('/profile', auth, profileValidation, updateProfile);
-router.post('/update-profile',  updateProfile);
+router.post('/update-profile', auth, profileValidation, updateProfile);
+router.get('/status', auth, getAvailabilityStatus);
 router.post('/status', auth, setOnlineStatus);
 
 module.exports = router;

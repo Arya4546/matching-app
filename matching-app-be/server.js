@@ -12,31 +12,76 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const matchingRoutes = require('./routes/matching');
 const mapRoutes = require('./routes/map');
+const adminRoutes = require('./routes/admin');
+const { ensureAdminAccount } = require('./services/adminBootstrapService');
 const socketHandler = require('./services/socketHandler');
 const errorHandler = require('./middleware/errorHandler');
+
+const DEFAULT_ALLOWED_ORIGINS = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173'
+];
+
+const getAllowedOrigins = () => {
+  const rawOrigins = process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || '';
+  const parsedOrigins = rawOrigins
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return parsedOrigins.length > 0 ? parsedOrigins : DEFAULT_ALLOWED_ORIGINS;
+};
+
+const allowedOrigins = getAllowedOrigins();
+const debugRoutesEnabled = process.env.ENABLE_DEBUG_ROUTES === 'true';
+const debugApiToken = process.env.DEBUG_API_TOKEN || '';
+
+const validateCorsOrigin = (origin, callback) => {
+  if (!origin || allowedOrigins.includes(origin)) {
+    return callback(null, true);
+  }
+
+  console.warn(`Blocked CORS origin: ${origin}`);
+  return callback(new Error('Not allowed by CORS'));
+};
+
+const requireDebugAccess = (req, res, next) => {
+  if (!debugRoutesEnabled) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  if (!debugApiToken) {
+    return next();
+  }
+
+  const providedToken = req.header('x-debug-token');
+  if (providedToken !== debugApiToken) {
+    return res.status(403).json({ error: 'Debug access denied' });
+  }
+  return next();
+};
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["*"],
+    origin: validateCorsOrigin,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true
   }
 });
 
 // Enhanced console logging on startup
-console.log('\n🚀 STARTING MATCHAPP BACKEND SERVER 🚀');
-console.log('══════════════════════════════════════');
+console.log('\nÃ°Å¸Å¡â‚¬ STARTING MATCHAPP BACKEND SERVER Ã°Å¸Å¡â‚¬');
+console.log('Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â');
 console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 console.log(`Time: ${new Date().toISOString()}`);
 console.log(`Node Version: ${process.version}`);
 console.log(`Platform: ${process.platform}`);
-console.log('══════════════════════════════════════\n');
-
-// Connect to database with logging
-connectDB();
+console.log('Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â\n');
 
 app.set('trust proxy', 1);
 app.use(helmet());
@@ -58,15 +103,15 @@ app.use(morgan(morganFormat, {
         else if (status.startsWith('4')) color = '\x1b[31m'; // Red for 4xx
         else if (status.startsWith('5')) color = '\x1b[35m'; // Magenta for 5xx
       }
-      console.log(`📡 ${color}${message.trim()}\x1b[0m`);
+      console.log(`Ã°Å¸â€œÂ¡ ${color}${message.trim()}\x1b[0m`);
     }
   }
 }));
 app.use(cors({
-  origin: "*",
+  origin: validateCorsOrigin,
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["*"]
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-debug-token"]
 }));
 
 const limiter = rateLimit({
@@ -79,14 +124,14 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
-    console.error('\n🚫 RATE LIMIT EXCEEDED 🚫');
-    console.error('═══════════════════════════');
+    console.error('\nÃ°Å¸Å¡Â« RATE LIMIT EXCEEDED Ã°Å¸Å¡Â«');
+    console.error('Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â');
     console.error(`Time: ${new Date().toISOString()}`);
     console.error(`IP: ${req.ip}`);
     console.error(`Method: ${req.method}`);
     console.error(`URL: ${req.originalUrl}`);
     console.error(`User-Agent: ${req.get('User-Agent')}`);
-    console.error('═══════════════════════════\n');
+    console.error('Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â\n');
 
     res.status(429).json({
       error: 'Too many requests from this IP, please try again later',
@@ -130,6 +175,7 @@ app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/matching', matchingRoutes);
 app.use('/api/map', mapRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -140,9 +186,9 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Debug endpoint for development
-if (process.env.NODE_ENV !== 'production') {
-  app.get('/api/debug/auth-flow', (req, res) => {
+// Debug endpoints are opt-in only via ENABLE_DEBUG_ROUTES=true
+if (debugRoutesEnabled) {
+  app.get('/api/debug/auth-flow', requireDebugAccess, (req, res) => {
     res.json({
       authFlow: {
         registration: {
@@ -158,7 +204,7 @@ if (process.env.NODE_ENV !== 'production') {
     });
   });
 
-  app.get('/api/debug/rate-limits', (req, res) => {
+  app.get('/api/debug/rate-limits', requireDebugAccess, (req, res) => {
     res.json({
       rateLimits: {
         general: {
@@ -191,7 +237,7 @@ if (process.env.NODE_ENV !== 'production') {
   });
 
   // Debug endpoint to check user registration status
-  app.post('/api/debug/check-user', async (req, res) => {
+  app.post('/api/debug/check-user', requireDebugAccess, async (req, res) => {
     try {
       const { phoneNumber } = req.body;
       if (!phoneNumber) {
@@ -235,41 +281,57 @@ app.use(errorHandler);
 socketHandler(io);
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log('\n✅ SERVER STARTED SUCCESSFULLY ✅');
-  console.log('═══════════════════════════════');
-  console.log(`🌐 Server running on port ${PORT}`);
-  console.log(`📍 Local URL: http://localhost:${PORT}`);
-  console.log(`🔍 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`📊 Debug info: http://localhost:${PORT}/api/debug/auth-flow`);
-  console.log(`⏰ Started at: ${new Date().toLocaleString()}`);
-  console.log('═══════════════════════════════\n');
 
-  console.log('📋 Available API Routes:');
-  console.log('  AUTH:');
-  console.log('    POST /api/auth/register');
-  console.log('    POST /api/auth/verify-sms');
-  console.log('    POST /api/auth/login');
-  console.log('    POST /api/auth/verify-login');
-  console.log('    GET  /api/auth/validate');
-  console.log('    GET  /api/auth/me');
-  console.log('    POST /api/auth/refresh');
-  console.log('  USERS:');
-  console.log('    GET  /api/users/nearby');
-  console.log('    GET  /api/users/all');
-  console.log('    POST /api/users/update-location');
-  console.log('    GET  /api/users/profile/:id');
-  console.log('    PUT  /api/users/profile');
-  console.log('    POST /api/users/status');
-  console.log('  MATCHING:');
-  console.log('    POST /api/matching/request');
-  console.log('    POST /api/matching/respond');
-  console.log('    GET  /api/matching/history');
-  console.log('    POST /api/matching/confirm-meeting');
-  console.log('  MAP:');
-  console.log('    GET  /api/map/config');
-  console.log('    GET  /api/map/data');
-  console.log('    GET  /api/map/location');
-  console.log('    POST /api/map/location');
-  console.log('\n🎯 Ready to accept requests!\n');
+const bootServer = async () => {
+  await connectDB();
+  await ensureAdminAccount();
+
+  server.listen(PORT, () => {
+    console.log('\nSERVER STARTED SUCCESSFULLY');
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Local URL: http://localhost:${PORT}`);
+    console.log(`Health check: http://localhost:${PORT}/api/health`);
+    if (debugRoutesEnabled) {
+      console.log(`Debug info: http://localhost:${PORT}/api/debug/auth-flow`);
+    }
+    console.log(`Started at: ${new Date().toLocaleString()}`);
+
+    console.log('Available API Routes:');
+    console.log('  AUTH:');
+    console.log('    POST /api/auth/register');
+    console.log('    POST /api/auth/verify-sms');
+    console.log('    POST /api/auth/login');
+    console.log('    POST /api/auth/verify-login');
+    console.log('    GET  /api/auth/validate');
+    console.log('    GET  /api/auth/me');
+    console.log('    POST /api/auth/refresh');
+    console.log('  USERS:');
+    console.log('    GET  /api/users/nearby');
+    console.log('    GET  /api/users/all');
+    console.log('    POST /api/users/update-location');
+    console.log('    GET  /api/users/profile/:id');
+    console.log('    PUT  /api/users/profile');
+    console.log('    POST /api/users/status');
+    console.log('  MATCHING:');
+    console.log('    POST /api/matching/request');
+    console.log('    POST /api/matching/respond');
+    console.log('    GET  /api/matching/pending-summary');
+    console.log('    GET  /api/matching/history');
+    console.log('    POST /api/matching/confirm-meeting');
+    console.log('  MAP:');
+    console.log('    GET  /api/map/config');
+    console.log('    GET  /api/map/data');
+    console.log('    GET  /api/map/location');
+    console.log('    POST /api/map/location');
+    console.log('  ADMIN:');
+    console.log('    GET   /api/admin/users');
+    console.log('    PATCH /api/admin/users/:userId/freeze');
+    console.log('    PATCH /api/admin/users/:userId/status');
+    console.log('\nReady to accept requests.\n');
+  });
+};
+
+bootServer().catch((error) => {
+  console.error('Server boot failed:', error);
+  process.exit(1);
 });

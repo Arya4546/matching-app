@@ -61,6 +61,19 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isAvailable: {
+    type: Boolean,
+    default: true
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
+  isFrozen: {
+    type: Boolean,
+    default: false
+  },
   matchCount: {
     type: Number,
     default: 0

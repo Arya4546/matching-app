@@ -3,6 +3,7 @@ const { auth } = require('../middleware/auth');
 const {
   sendMatchRequest,
   respondToMatch,
+  getPendingSummary,
   getMatchHistory,
   confirmMeeting,
   matchRequestValidation,
@@ -14,6 +15,7 @@ const router = express.Router();
 
 router.post('/request', auth, matchRequestValidation, sendMatchRequest);
 router.post('/respond', auth, matchResponseValidation, respondToMatch);
+router.get('/pending-summary', auth, getPendingSummary);
 router.get('/history', auth, getMatchHistory);
 router.post('/confirm-meeting', auth, meetingConfirmValidation, confirmMeeting);
 

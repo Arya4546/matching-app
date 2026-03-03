@@ -401,7 +401,8 @@ class GoogleMapsService {
   // Create invisible marker icon for blinking effect
   createInvisibleMarkerIcon() {
     if (!this.google || !this.google.maps) {
-      throw new Error("Google Maps not initialized");
+      console.warn("Google Maps not initialized. Returning null invisible icon.");
+      return null;
     }
 
     // Create a transparent canvas
@@ -444,7 +445,8 @@ class GoogleMapsService {
   // Create circular avatar marker icon without pin below
   createAvatarMarkerIcon(avatarUrl, size = 50, isSelected = false, isCurrentUser = false, gender = 'male') {
     if (!this.google || !this.google.maps) {
-      throw new Error("Google Maps not initialized");
+      console.warn("Google Maps not initialized. Returning null icon.");
+      return null;
     }
 
     // Create canvas for flat, minimalist pin design
@@ -695,6 +697,11 @@ class GoogleMapsService {
   }
 
   async createUserMarker(user, isCurrentUser = false, isWithinRadius = false) {
+    if (!this.google || !this.google.maps) {
+      console.warn("Google Maps not initialized. Skipping marker creation.");
+      return null;
+    }
+
     const position = {
       lat: user.location.coordinates[1],
       lng: user.location.coordinates[0],
@@ -737,9 +744,11 @@ class GoogleMapsService {
       const activeIcon = await this.createAvatarMarkerIcon(avatarUrl, activeSize, true, isCurrentUser, user.gender);
       marker.setIcon(activeIcon);
 
-      // For current user, don't show info window (no small profile modal)
+      // For current user, show the profile modal instead of UserPanel
       if (isCurrentUser) {
-        // Do nothing - don't show the small profile modal for current user
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('showCurrentUserProfile'));
+        }, 100);
       } else {
         // For other users, only show bottom modal (no info window on pin)
         setTimeout(() => {

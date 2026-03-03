@@ -1,49 +1,53 @@
 const { body, query, validationResult } = require('express-validator');
 const User = require('../models/User');
+const DATA_IMAGE_REGEX = /^data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+$/;
+
+const isValidImageSource = (value) => {
+  if (typeof value !== 'string') return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (DATA_IMAGE_REGEX.test(trimmed)) return true;
+
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch (error) {
+    return false;
+  }
+};
 
 const getNearbyUsers = async (req, res) => {
   try {
     const errors = validationResult(req);
-
-    console.log(errors, errors.isEmpty());
-
-
     if (!errors.isEmpty()) {
-      console.log('Validation errors:', errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
+
     const { lat, lng, radius = 100000 } = req.query;
-
     const currentUser = req.user;
-
-    console.log(`Searching for users within ${radius}m of coordinates [${lng}, ${lat}] for user ${currentUser._id}`);
 
     const nearbyUsers = await User.find({
       _id: { $ne: currentUser._id },
+      isAvailable: { $ne: false },
+      isFrozen: { $ne: true },
       location: {
         $near: {
           $geometry: {
             type: 'Point',
             coordinates: [parseFloat(lng), parseFloat(lat)]
           },
-          $maxDistance: parseInt(radius)
+          $maxDistance: parseInt(radius, 10)
         }
       }
-    }).select('-smsCode -smsCodeExpiry');
+    }).select('name gender location isOnline isAvailable profilePhoto bio aboutme album address matchCount actualMeetCount lastSeen status');
 
-    console.log(`Found ${nearbyUsers.length} users within ${radius}m radius`);
-
-    // Log the first few users for debugging
-    nearbyUsers.slice(0, 3).forEach((user, index) => {
-      console.log(`User ${index + 1}: ${user.name} at [${user.location?.coordinates}]`);
-    });
     res.json({
       users: nearbyUsers,
       count: nearbyUsers.length
     });
   } catch (error) {
     console.error('Get nearby users error:', error);
-    res.status(500).json({ error: '近くのユーザーの取得中にサーバーエラーが発生しました' });
+    res.status(500).json({ error: 'Failed to fetch nearby users' });
   }
 };
 
@@ -77,60 +81,71 @@ const updateLocation = async (req, res) => {
     });
 
     res.json({
-      message: '位置情報を更新しました',
+      message: 'Location updated',
       location: user.location
     });
   } catch (error) {
     console.error('Update location error:', error);
-    res.status(500).json({ error: '位置情報の更新中にサーバーエラーが発生しました' });
+    res.status(500).json({ error: 'Failed to update location' });
   }
 };
 
 const getUserProfile = async (req, res) => {
   try {
     const { id } = req.params;
-
     const user = await User.findById(id).select('-smsCode -smsCodeExpiry -phoneNumber');
 
     if (!user) {
-      return res.status(404).json({ error: 'ユーザーが見つかりません' });
+      return res.status(404).json({ error: 'User not found' });
     }
 
     res.json({ user });
   } catch (error) {
     console.error('Get user profile error:', error);
-    res.status(500).json({ error: 'ユーザープロフィールの取得中にサーバーエラーが発生しました' });
+    res.status(500).json({ error: 'Failed to fetch user profile' });
   }
 };
 
 const updateProfile = async (req, res) => {
   try {
-    // const errors = validationResult(req);
-    // if (!errors.isEmpty()) {
-    //   return res.status(400).json({ errors: errors.array() });
-    // }
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
     const { name, bio, profilePhoto, address, aboutme, album, gender, birth_year, status } = req.body;
-    const userId = req.body.userId || req.user?._id;
-    console.log('userId=========', userId);
+    const requestedUserId = req.body.userId || req.user?._id;
+
+    if (!requestedUserId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    if (
+      req.user?.role !== 'admin' &&
+      requestedUserId.toString() !== req.user?._id?.toString()
+    ) {
+      return res.status(403).json({ error: 'Not authorized to update this profile' });
+    }
 
     const updateData = {};
-    if (name) updateData.name = name;
+    if (name !== undefined) updateData.name = name;
     if (bio !== undefined) updateData.bio = bio;
-    if (profilePhoto) updateData.profilePhoto = profilePhoto;
-    if (address) updateData.address = address;
+    if (profilePhoto !== undefined) updateData.profilePhoto = profilePhoto;
+    if (address !== undefined) updateData.address = address;
     if (aboutme !== undefined) updateData.aboutme = aboutme;
     if (album !== undefined) updateData.album = album;
     if (gender && ['male', 'female', 'other'].includes(gender)) updateData.gender = gender;
+
     if (birth_year !== undefined) {
       const by = parseInt(birth_year, 10);
       if (!Number.isNaN(by)) {
         updateData.birth_year = by;
       }
     }
+
     if (status !== undefined) {
       if (Array.isArray(status)) {
-        updateData.status = status.filter(s => typeof s === 'string');
+        updateData.status = status.filter((s) => typeof s === 'string');
       } else if (typeof status === 'string' && status.length > 0) {
         updateData.status = [status];
       } else if (status === null) {
@@ -138,60 +153,71 @@ const updateProfile = async (req, res) => {
       }
     }
 
-    const user = await User.findByIdAndUpdate(
-      userId,
-      updateData,
-      { new: true }
-    ).select('-smsCode -smsCodeExpiry');
+    const user = await User.findByIdAndUpdate(requestedUserId, updateData, { new: true }).select('-smsCode -smsCodeExpiry');
 
-    console.log("===========",updateData);
     res.json({
-      message: 'プロフィールを更新しました',
+      message: 'Profile updated',
       user
     });
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({ error: 'プロフィールの更新中にサーバーエラーが発生しました' });
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 };
 
 const setOnlineStatus = async (req, res) => {
   try {
-    const { isOnline } = req.body;
+    const { isAvailable } = req.body;
     const userId = req.user._id;
 
     const user = await User.findByIdAndUpdate(
       userId,
       {
-        isOnline,
-        lastSeen: new Date(),
-        ...(isOnline ? {} : { socketId: null })
+        isAvailable: typeof isAvailable === 'boolean' ? isAvailable : true,
+        lastSeen: new Date()
       },
       { new: true }
     ).select('-smsCode -smsCodeExpiry');
 
     req.app.get('io').emit('userStatusUpdate', {
       userId: user._id,
-      isOnline: user.isOnline,
+      isAvailable: user.isAvailable,
       lastSeen: user.lastSeen
     });
 
     res.json({
-      message: 'ステータスを更新しました',
-      isOnline: user.isOnline
+      message: 'Availability updated',
+      isAvailable: user.isAvailable
     });
   } catch (error) {
-    console.error('Set online status error:', error);
-    res.status(500).json({ error: 'ステータスの更新中にサーバーエラーが発生しました' });
-    console.log('Set online status error:-----------------', error);
+    console.error('Set availability status error:', error);
+    res.status(500).json({ error: 'Failed to update availability status' });
+  }
+};
 
+const getAvailabilityStatus = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('isAvailable isOnline lastSeen');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      isAvailable: user.isAvailable !== false,
+      isOnline: user.isOnline,
+      lastSeen: user.lastSeen
+    });
+  } catch (error) {
+    console.error('Get availability status error:', error);
+    res.status(500).json({ error: 'Failed to fetch availability status' });
   }
 };
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({})
-      .select('name gender location phoneNumber isOnline profilePhoto bio aboutme album address matchCount actualMeetCount lastSeen')
+    const users = await User.find({ isAvailable: { $ne: false }, isFrozen: { $ne: true } })
+      .select('name gender location isOnline isAvailable profilePhoto bio aboutme album address matchCount actualMeetCount lastSeen')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -200,28 +226,35 @@ const getAllUsers = async (req, res) => {
     });
   } catch (error) {
     console.error('Get all users error:', error);
-    res.status(500).json({ error: 'ユーザー一覧の取得中にサーバーエラーが発生しました' });
+    res.status(500).json({ error: 'Failed to fetch user list' });
   }
 };
 
 const nearbyUsersValidation = [
-  query('lat').isFloat({ min: -90, max: 90 }).withMessage('有効な緯度が必要です'),
-  query('lng').isFloat({ min: -180, max: 180 }).withMessage('有効な経度が必要です'),
-  query('radius').optional().isInt({ min: 100, max: 200000 }).withMessage('半径は100メートルから200,000メートルの範囲で入力してください')
+  query('lat').isFloat({ min: -90, max: 90 }).withMessage('Valid latitude is required'),
+  query('lng').isFloat({ min: -180, max: 180 }).withMessage('Valid longitude is required'),
+  query('radius').optional().isInt({ min: 100, max: 200000 }).withMessage('Radius must be between 100m and 200000m')
 ];
 
 const locationValidation = [
-  body('lat').isFloat({ min: -90, max: 90 }).withMessage('有効な緯度が必要です'),
-  body('lng').isFloat({ min: -180, max: 180 }).withMessage('有効な経度が必要です')
+  body('lat').isFloat({ min: -90, max: 90 }).withMessage('Valid latitude is required'),
+  body('lng').isFloat({ min: -180, max: 180 }).withMessage('Valid longitude is required')
 ];
 
 const profileValidation = [
-  body('name').optional().trim().isLength({ min: 2, max: 50 }).withMessage('名前は2文字以上50文字以下で入力してください'),
-  body('bio').optional().isLength({ max: 500 }).withMessage('自己紹介は500文字以下で入力してください'),
-  body('profilePhoto').optional().isURL().withMessage('有効な写真URLを入力してください'),
-  body('address').optional().trim().isLength({ min: 5, max: 200 }).withMessage('住所は5文字以上200文字以下で入力してください'),
-  body('aboutme').optional().isLength({ max: 1000 }).withMessage('About meは1000文字以下で入力してください'),
-  body('album').optional().isArray({ max: 5 }).withMessage('アルバムは最大5枚までです')
+  body('name').optional().trim().isLength({ min: 2, max: 50 }).withMessage('Name must be 2-50 characters'),
+  body('bio').optional().isLength({ max: 500 }).withMessage('Bio must be up to 500 characters'),
+  body('profilePhoto')
+    .optional()
+    .custom((value) => isValidImageSource(value))
+    .withMessage('profilePhoto must be a valid URL or data URL'),
+  body('address').optional().trim().isLength({ min: 5, max: 200 }).withMessage('Address must be 5-200 characters'),
+  body('aboutme').optional().isLength({ max: 1000 }).withMessage('About me must be up to 1000 characters'),
+  body('album').optional().isArray({ max: 5 }).withMessage('Album can contain up to 5 images'),
+  body('album.*')
+    .optional()
+    .custom((value) => typeof value === 'string' && isValidImageSource(value))
+    .withMessage('Each album item must be a valid URL or data URL')
 ];
 
 module.exports = {
@@ -230,6 +263,7 @@ module.exports = {
   getUserProfile,
   updateProfile,
   setOnlineStatus,
+  getAvailabilityStatus,
   getAllUsers,
   nearbyUsersValidation,
   locationValidation,

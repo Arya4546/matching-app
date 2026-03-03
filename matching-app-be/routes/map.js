@@ -11,8 +11,8 @@ const {
 
 const router = express.Router();
 
-// Get map configuration (no auth required for basic config)
-router.get('/config', getMapConfig);
+// Get map configuration (requires auth to avoid open route metadata exposure)
+router.get('/config', auth, getMapConfig);
 
 // Get map data with nearby users (requires auth)
 router.get('/data', auth, mapDataValidation, getMapData);

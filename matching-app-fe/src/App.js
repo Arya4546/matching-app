@@ -8,6 +8,7 @@ import Login from './components/auth/Login';
 import VerifySMS from './components/auth/VerifySMS';
 import MapView from './components/map/MapView';
 import Profile from './components/profile/Profile';
+import AdminPanel from './components/admin/AdminPanel';
 import './styles/App.css';
 
 function App() {
@@ -63,6 +64,10 @@ function App() {
         <Route 
           path="/profile" 
           element={user ? <Profile /> : <Navigate to="/login" />} 
+        />
+        <Route
+          path="/admin"
+          element={user?.role === 'admin' ? <AdminPanel /> : <Navigate to="/map" />}
         />
       </Routes>
     </div>

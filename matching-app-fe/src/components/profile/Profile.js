@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext";
 import { userAPI } from "../../services/api";
@@ -8,16 +8,16 @@ import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const navigator = useNavigate();
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    userId: user?.id || "",
+    userId: user?.id || user?._id || "",
     name: user?.name || "",
     bio: user?.bio || "",
     profilePhoto: user?.profilePhoto || "",
     address: user?.address || "",
   });
-  const fileInputRef = React.useRef(null);
+  const fileInputRef = useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -26,18 +26,18 @@ const Profile = () => {
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("画像サイズは5MB以下にしてください");
-        return;
-      }
+    if (!file) return;
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, profilePhoto: reader.result }));
-      };
-      reader.readAsDataURL(file);
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("\u753b\u50cf\u30b5\u30a4\u30ba\u306f5MB\u4ee5\u4e0b\u306b\u3057\u3066\u304f\u3060\u3055\u3044");
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({ ...prev, profilePhoto: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handlePhotoClick = () => {
@@ -47,17 +47,16 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    console.log("abcde", formData);
 
     try {
       const response = await userAPI.updateProfile(formData);
-
       updateUser(response.data.user);
-      toast.success("プロフィールが正常に更新されました！");
+      toast.success("\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u304c\u6b63\u5e38\u306b\u66f4\u65b0\u3055\u308c\u307e\u3057\u305f");
       navigator("/map");
     } catch (error) {
       console.error("Profile update error:", error);
-      toast.error("プロフィールの更新に失敗しました");
+      const validationMessage = error.response?.data?.errors?.[0]?.msg;
+      toast.error(validationMessage || error.response?.data?.error || "\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u306e\u66f4\u65b0\u306b\u5931\u6557\u3057\u307e\u3057\u305f");
     } finally {
       setLoading(false);
     }
@@ -65,7 +64,7 @@ const Profile = () => {
 
   const handleCancel = () => {
     setFormData({
-      userId: user?._id || "",
+      userId: user?.id || user?._id || "",
       name: user?.name || "",
       bio: user?.bio || "",
       profilePhoto: user?.profilePhoto || "",
@@ -86,25 +85,17 @@ const Profile = () => {
           <div className="profile-avatar-section">
             <div className="avatar-container">
               <img
-                src={
-                  formData.profilePhoto ||
-                  "https://randomuser.me/api/portraits/men/32.jpg"
-                }
-                alt="プロフィール"
+                src={formData.profilePhoto || "https://randomuser.me/api/portraits/men/32.jpg"}
+                alt={"\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb"}
                 className="profile-avatar-large"
               />
               <button
                 type="button"
                 className="change-photo-btn"
                 onClick={handlePhotoClick}
-                aria-label="写真を変更"
+                aria-label={"\u5199\u771f\u3092\u5909\u66f4"}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="camera-icon"
-                >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="camera-icon">
                   <path d="M12 9a3 3 0 100 6 3 3 0 000-6z" />
                   <path
                     fillRule="evenodd"
@@ -119,33 +110,33 @@ const Profile = () => {
                 accept="image/*"
                 onChange={handlePhotoChange}
                 style={{ display: "none" }}
-                aria-label="プロフィール写真をアップロード"
+                aria-label={"\u30d7\u30ed\u30d5\u30a3\u30fc\u30eb\u5199\u771f\u3092\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9"}
               />
             </div>
           </div>
         </div>
 
-        <form className="profile-form">
+        <form className="profile-form" onSubmit={handleSubmit}>
           <div className="form-section">
-            <label htmlFor="name">名前</label>
+            <label htmlFor="name">{"\u540d\u524d"}</label>
             <input
               type="text"
               id="name"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="フルネームを入力してください"
+              placeholder={"\u30d5\u30eb\u30cd\u30fc\u30e0\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044"}
             />
           </div>
 
           <div className="form-section">
-            <label htmlFor="bio">自己紹介</label>
+            <label htmlFor="bio">{"\u81ea\u5df1\u7d39\u4ecb"}</label>
             <textarea
               id="bio"
               name="bio"
               value={formData.bio}
               onChange={handleInputChange}
-              placeholder="自分について教えてください..."
+              placeholder={"\u81ea\u5206\u306b\u3064\u3044\u3066\u6559\u3048\u3066\u304f\u3060\u3055\u3044..."}
               rows="4"
               maxLength="500"
             />
@@ -153,49 +144,45 @@ const Profile = () => {
           </div>
 
           <div className="form-section">
-            <label htmlFor="address">住所</label>
+            <label htmlFor="address">{"\u4f4f\u6240"}</label>
             <textarea
               id="address"
               name="address"
               value={formData.address}
               onChange={handleInputChange}
-              placeholder="住所を入力してください"
+              placeholder={"\u4f4f\u6240\u3092\u5165\u529b\u3057\u3066\u304f\u3060\u3055\u3044"}
               rows="2"
             />
           </div>
 
           <div className="form-section">
-            <label>性別</label>
+            <label>{"\u6027\u5225"}</label>
             <div className="profile-field-display">
               {user?.gender?.charAt(0).toUpperCase() + user?.gender?.slice(1)}
             </div>
           </div>
 
           <div className="form-section">
-            <label>電話番号</label>
+            <label>{"\u96fb\u8a71\u756a\u53f7"}</label>
             <div className="profile-field-display">
               {user?.phoneNumber}
-              <span className="verified-badge">認証済み</span>
+              <span className="verified-badge">{"\u8a8d\u8a3c\u6e08\u307f"}</span>
+            </div>
+          </div>
+
+          <div className="profile-footer">
+            <div className="profile-actions">
+              <div className="edit-actions">
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                  {loading ? "\u4fdd\u5b58\u4e2d..." : "\u5909\u66f4\u3092\u4fdd\u5b58"}
+                </button>
+                <button type="button" onClick={handleCancel} className="btn btn-secondary">
+                  {"\u30ad\u30e3\u30f3\u30bb\u30eb"}
+                </button>
+              </div>
             </div>
           </div>
         </form>
-
-        <div className="profile-footer">
-          <div className="profile-actions">
-            <div className="edit-actions">
-              <button
-                onClick={handleSubmit}
-                className="btn btn-primary"
-                disabled={loading}
-              >
-                {loading ? "保存中..." : "変更を保存"}
-              </button>
-              <button onClick={handleCancel} className="btn btn-secondary">
-                キャンセル
-              </button>
-            </div>
-          </div>
-        </div>
       </motion.div>
     </div>
   );

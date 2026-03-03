@@ -11,6 +11,27 @@ const generateRefreshToken = (userId) => {
   return jwt.sign({ userId, type: 'refresh' }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
+const getAdminPhones = () => {
+  const raw = process.env.ADMIN_PHONE_NUMBERS || process.env.ADMIN_PHONE || '';
+  return raw
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+};
+
+const isConfiguredAdminPhone = (phoneNumber) => {
+  return getAdminPhones().includes(phoneNumber);
+};
+
+const resolveRegistrationRole = async (phoneNumber) => {
+  if (!isConfiguredAdminPhone(phoneNumber)) {
+    return 'user';
+  }
+
+  const existingAdminCount = await User.countDocuments({ role: 'admin' });
+  return existingAdminCount === 0 ? 'admin' : 'user';
+};
+
 const register = async (req, res) => {
   try {
     // const errors = validationResult(req);
@@ -21,8 +42,20 @@ const register = async (req, res) => {
     const { name, phoneNumber, gender, address, latitude, longitude, profilePhoto } = req.body;
 
     let user = await User.findOne({ phoneNumber });
+    const assignedRole = await resolveRegistrationRole(phoneNumber);
     if (user && user.smsVerified) {
       return res.status(400).json({ error: 'この電話番号は既に登録されています' });
+    }
+
+    if (user && user.isFrozen) {
+      return res.status(403).json({
+        error: 'ã“ã®ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã¯å‡çµä¸­ã§ã™ã€‚ç®¡ç†è€…ã«ãŠå•ã„åˆã‚ã›ãã ã•ã„ã€‚',
+        errorCode: 'ACCOUNT_FROZEN'
+      });
+    }
+
+    if (user && !user.role) {
+      user.role = assignedRole;
     }
 
     const smsCode = generateSMSCode();
@@ -32,6 +65,7 @@ const register = async (req, res) => {
       user.name = name;
       user.gender = gender;
       user.address = address;
+      user.role = assignedRole;
       user.smsCode = smsCode;
       user.smsCodeExpiry = smsCodeExpiry;
       if (profilePhoto) {
@@ -50,6 +84,7 @@ const register = async (req, res) => {
         phoneNumber,
         gender,
         address,
+        role: assignedRole,
         smsCode,
         smsCodeExpiry,
         smsVerified: false
@@ -135,6 +170,10 @@ const verifySMS = async (req, res) => {
       return res.status(400).json({ error: '電話番号は既に認証済みです' });
     }
 
+    if (user.isFrozen) {
+      return res.status(403).json({ error: 'ã“ã®ã‚¢ã‚«ã‚¦ãƒ³ãƒˆã¯å‡çµä¸­ã§ã™ã€‚ç®¡ç†è€…ã«ãŠå•ã„åˆã‚ã›ãã ã•ã„ã€‚' });
+    }
+
     if (!user.smsCode || user.smsCode !== code) {
       return res.status(400).json({ error: '認証コードが正しくありません' });
     }
@@ -164,7 +203,10 @@ const verifySMS = async (req, res) => {
         address: user.address,
         profilePhoto: user.profilePhoto,
         bio: user.bio,
-        location: user.location
+        location: user.location,
+        isAvailable: user.isAvailable !== false,
+        isFrozen: user.isFrozen === true,
+        role: user.role || 'user'
       }
     });
   } catch (error) {
@@ -292,6 +334,9 @@ const verifyLogin = async (req, res) => {
     user.smsCode = undefined;
     user.smsCodeExpiry = undefined;
     user.lastSeen = new Date();
+    if (!user.role) {
+      user.role = 'user';
+    }
 
     // Update location if provided
     if (latitude && longitude) {
@@ -321,7 +366,10 @@ const verifyLogin = async (req, res) => {
         location: user.location,
         bio: user.bio,
         matchCount: user.matchCount,
-        actualMeetCount: user.actualMeetCount
+        actualMeetCount: user.actualMeetCount,
+        isAvailable: user.isAvailable !== false,
+        isFrozen: user.isFrozen === true,
+        role: user.role || 'user'
       }
     });
   } catch (error) {
@@ -382,6 +430,13 @@ const validateSession = async (req, res) => {
         });
       }
 
+      if (user.isFrozen && user.role !== 'admin') {
+        return res.status(403).json({
+          isAuthenticated: false,
+          error: 'ACCOUNT_FROZEN'
+        });
+      }
+
       res.json({
         isAuthenticated: true,
         user: {
@@ -395,6 +450,9 @@ const validateSession = async (req, res) => {
           matchCount: user.matchCount,
           actualMeetCount: user.actualMeetCount,
           isOnline: user.isOnline,
+          isAvailable: user.isAvailable !== false,
+          isFrozen: user.isFrozen === true,
+          role: user.role || 'user',
           lastSeen: user.lastSeen
         }
       });
@@ -429,6 +487,10 @@ const getCurrentUser = async (req, res) => {
       return res.status(401).json({ error: '無効なユーザーまたは認証が完了していません' });
     }
 
+    if (user.isFrozen && user.role !== 'admin') {
+      return res.status(403).json({ error: 'ACCOUNT_FROZEN' });
+    }
+
     res.json({
       user: {
         id: user._id,
@@ -441,6 +503,9 @@ const getCurrentUser = async (req, res) => {
         matchCount: user.matchCount,
         actualMeetCount: user.actualMeetCount,
         isOnline: user.isOnline,
+        isAvailable: user.isAvailable !== false,
+        isFrozen: user.isFrozen === true,
+        role: user.role || 'user',
         location: user.location,
         lastSeen: user.lastSeen
       }
@@ -473,6 +538,10 @@ const refreshToken = async (req, res) => {
         return res.status(401).json({ error: 'ユーザーが見つからないか認証が完了していません' });
       }
 
+      if (user.isFrozen && user.role !== 'admin') {
+        return res.status(403).json({ error: 'ACCOUNT_FROZEN' });
+      }
+
       const newToken = generateToken(user._id);
       const newRefreshToken = generateRefreshToken(user._id);
 
@@ -490,6 +559,9 @@ const refreshToken = async (req, res) => {
           matchCount: user.matchCount,
           actualMeetCount: user.actualMeetCount,
           isOnline: user.isOnline,
+          isAvailable: user.isAvailable !== false,
+          isFrozen: user.isFrozen === true,
+          role: user.role || 'user',
           location: user.location,
           lastSeen: user.lastSeen
         }

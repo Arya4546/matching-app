@@ -4,28 +4,47 @@ const Meeting = require('../models/Meeting');
 const User = require('../models/User');
 
 const calculateMidpoint = (lat1, lng1, lat2, lng2) => {
-  const lat1Rad = lat1 * Math.PI / 180;
-  const lat2Rad = lat2 * Math.PI / 180;
-  const lng1Rad = lng1 * Math.PI / 180;
-  const lng2Rad = lng2 * Math.PI / 180;
+  const lat1Rad = (lat1 * Math.PI) / 180;
+  const lat2Rad = (lat2 * Math.PI) / 180;
+  const lng1Rad = (lng1 * Math.PI) / 180;
+  const lng2Rad = (lng2 * Math.PI) / 180;
 
   const dLng = lng2Rad - lng1Rad;
-
   const bX = Math.cos(lat2Rad) * Math.cos(dLng);
   const bY = Math.cos(lat2Rad) * Math.sin(dLng);
 
   const lat3 = Math.atan2(
     Math.sin(lat1Rad) + Math.sin(lat2Rad),
-    Math.sqrt((Math.cos(lat1Rad) + bX) * (Math.cos(lat1Rad) + bX) + bY * bY)
+    Math.sqrt((Math.cos(lat1Rad) + bX) ** 2 + bY ** 2)
   );
 
   const lng3 = lng1Rad + Math.atan2(bY, Math.cos(lat1Rad) + bX);
 
   return {
-    lat: lat3 * 180 / Math.PI,
-    lng: lng3 * 180 / Math.PI
+    lat: (lat3 * 180) / Math.PI,
+    lng: (lng3 * 180) / Math.PI
   };
 };
+
+const toPublicUser = (user) => ({
+  id: user?._id || user?.id,
+  name: user?.name,
+  profilePhoto: user?.profilePhoto || null,
+  bio: user?.bio || '',
+  isOnline: user?.isOnline === true,
+  isAvailable: user?.isAvailable !== false
+});
+
+const buildPendingRequest = (match, direction) => ({
+  matchId: match._id,
+  status: match.status,
+  direction,
+  meetingReason: match.meetingReason,
+  urgency: match.urgency,
+  meetingPoint: match.meetingPoint,
+  createdAt: match.createdAt,
+  expiresAt: match.expiresAt
+});
 
 const sendMatchRequest = async (req, res) => {
   try {
@@ -34,13 +53,12 @@ const sendMatchRequest = async (req, res) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { targetUserId, meetingReason } = req.body;
+    const { targetUserId, meetingReason, urgency = '1h' } = req.body;
     const requesterId = req.user._id;
     const targetUser = await User.findById(targetUserId);
-    console.log('targetUser========',targetUser,"requestUser=======",req.user);
-    
-    if (!targetUser || !targetUser.isOnline) {
-      return res.status(404).json({ error: '対象ユーザーが見つからないかオフラインです' });
+
+    if (!targetUser || targetUser.isAvailable === false || targetUser.isFrozen === true) {
+      return res.status(404).json({ error: 'Target user is unavailable' });
     }
 
     const existingMatch = await Match.findOne({
@@ -49,10 +67,9 @@ const sendMatchRequest = async (req, res) => {
         { requesterId: targetUserId, targetUserId: requesterId, status: 'pending' }
       ]
     });
-    console.log('existing',existingMatch);
 
     if (existingMatch) {
-      return res.status(400).json({ error: 'マッチングリクエストは既に存在します' });
+      return res.status(400).json({ error: 'A pending match request already exists' });
     }
 
     const requester = req.user;
@@ -67,6 +84,7 @@ const sendMatchRequest = async (req, res) => {
       requesterId,
       targetUserId,
       meetingReason,
+      urgency,
       meetingPoint: {
         type: 'Point',
         coordinates: [midpoint.lng, midpoint.lat]
@@ -74,27 +92,33 @@ const sendMatchRequest = async (req, res) => {
     });
 
     await match.save();
-    // await match.populate(['requesterId', 'targetUserId'], '-smsCode -smsCodeExpiry');
 
-    req.app.get('io').to(targetUser.socketId).emit('newMatchRequest', {
-      matchId: match._id,
-      requester: {
-        id: requester._id,
-        name: requester.name,
-        profilePhoto: requester.profilePhoto,
-        bio: requester.bio
-      },
-      meetingReason: match.meetingReason,
-      meetingPoint: match.meetingPoint
-    });
+    const pendingForTarget = {
+      ...buildPendingRequest(match, 'incoming'),
+      requester: toPublicUser(requester)
+    };
+
+    const pendingForRequester = {
+      ...buildPendingRequest(match, 'outgoing'),
+      targetUser: toPublicUser(targetUser)
+    };
+
+    if (targetUser.socketId) {
+      req.app.get('io').to(targetUser.socketId).emit('newMatchRequest', pendingForTarget);
+    }
+
+    if (requester.socketId) {
+      req.app.get('io').to(requester.socketId).emit('outgoingMatchPending', pendingForRequester);
+    }
 
     res.status(201).json({
-      message: 'マッチングリクエストを送信しました',
-      match
+      message: 'Match request sent',
+      match,
+      pendingRequest: pendingForRequester
     });
   } catch (error) {
     console.error('Send match request error:', error);
-    res.status(500).json({ error: 'マッチングリクエストの送信中にサーバーエラーが発生しました' });
+    res.status(500).json({ error: 'Failed to send match request' });
   }
 };
 
@@ -111,19 +135,27 @@ const respondToMatch = async (req, res) => {
     const match = await Match.findById(matchId).populate(['requesterId', 'targetUserId'], '-smsCode -smsCodeExpiry');
 
     if (!match) {
-      return res.status(404).json({ error: 'マッチが見つかりません' });
+      return res.status(404).json({ error: 'Match not found' });
     }
 
     if (match.targetUserId._id.toString() !== userId.toString()) {
-      return res.status(403).json({ error: 'このマッチに応答する権限がありません' });
+      return res.status(403).json({ error: 'Not authorized to respond to this match' });
     }
 
     if (match.status !== 'pending') {
-      return res.status(400).json({ error: 'マッチは既に応答済みです' });
+      return res.status(400).json({ error: 'Match has already been responded to' });
     }
 
     match.status = response;
     await match.save();
+
+    const lifecyclePayload = {
+      matchId: match._id,
+      status: response,
+      resolvedAt: new Date(),
+      meetingReason: match.meetingReason,
+      urgency: match.urgency
+    };
 
     if (response === 'accepted') {
       await User.findByIdAndUpdate(match.requesterId._id, { $inc: { matchCount: 1 } });
@@ -135,43 +167,106 @@ const respondToMatch = async (req, res) => {
       });
       await meeting.save();
 
-      req.app.get('io').to(match.requesterId.socketId).emit('matchAccepted', {
-        matchId: match._id,
-        targetUser: {
-          id: match.targetUserId._id,
-          name: match.targetUserId.name,
-          profilePhoto: match.targetUserId.profilePhoto
-        },
-        meetingPoint: match.meetingPoint,
-        meetingId: meeting._id,
-        scheduledTime: meeting.scheduledTime
-      });
+      if (match.requesterId.socketId) {
+        req.app.get('io').to(match.requesterId.socketId).emit('matchAccepted', {
+          ...lifecyclePayload,
+          matchId: match._id,
+          targetUser: {
+            id: match.targetUserId._id,
+            name: match.targetUserId.name,
+            profilePhoto: match.targetUserId.profilePhoto
+          },
+          meetingReason: match.meetingReason,
+          urgency: match.urgency,
+          meetingPoint: match.meetingPoint,
+          meetingId: meeting._id,
+          scheduledTime: meeting.scheduledTime
+        });
+      }
 
-      req.app.get('io').to(match.targetUserId.socketId).emit('matchConfirmed', {
-        matchId: match._id,
-        requester: {
-          id: match.requesterId._id,
-          name: match.requesterId.name,
-          profilePhoto: match.requesterId.profilePhoto
-        },
-        meetingPoint: match.meetingPoint,
-        meetingId: meeting._id,
-        scheduledTime: meeting.scheduledTime
-      });
-    } else {
+      if (match.targetUserId.socketId) {
+        req.app.get('io').to(match.targetUserId.socketId).emit('matchConfirmed', {
+          ...lifecyclePayload,
+          matchId: match._id,
+          requester: {
+            id: match.requesterId._id,
+            name: match.requesterId.name,
+            profilePhoto: match.requesterId.profilePhoto
+          },
+          meetingReason: match.meetingReason,
+          urgency: match.urgency,
+          meetingPoint: match.meetingPoint,
+          meetingId: meeting._id,
+          scheduledTime: meeting.scheduledTime
+        });
+      }
+    } else if (match.requesterId.socketId) {
       req.app.get('io').to(match.requesterId.socketId).emit('matchRejected', {
+        ...lifecyclePayload,
         matchId: match._id,
         targetUserId: match.targetUserId._id
       });
     }
 
+    if (match.targetUserId.socketId) {
+      req.app.get('io').to(match.targetUserId.socketId).emit('incomingMatchResolved', lifecyclePayload);
+    }
+
     res.json({
-      message: `マッチを${response === 'accepted' ? '承認' : '拒否'}しました`,
+      message: `Match ${response === 'accepted' ? 'accepted' : 'rejected'}`,
       match
     });
   } catch (error) {
     console.error('Respond to match error:', error);
-    res.status(500).json({ error: 'マッチの応答中にサーバーエラーが発生しました' });
+    res.status(500).json({ error: 'Failed to respond to match' });
+  }
+};
+
+const getPendingSummary = async (req, res) => {
+  try {
+    const userId = req.user._id.toString();
+    const matches = await Match.find({
+      status: 'pending',
+      $or: [{ requesterId: userId }, { targetUserId: userId }]
+    })
+      .populate('requesterId', 'name profilePhoto bio isOnline isAvailable')
+      .populate('targetUserId', 'name profilePhoto bio isOnline isAvailable')
+      .sort({ createdAt: -1 });
+
+    const incoming = [];
+    const outgoing = [];
+
+    matches.forEach((match) => {
+      const requesterId = match.requesterId?._id?.toString();
+      const targetUserId = match.targetUserId?._id?.toString();
+
+      if (targetUserId === userId) {
+        incoming.push({
+          ...buildPendingRequest(match, 'incoming'),
+          requester: toPublicUser(match.requesterId)
+        });
+        return;
+      }
+
+      if (requesterId === userId) {
+        outgoing.push({
+          ...buildPendingRequest(match, 'outgoing'),
+          targetUser: toPublicUser(match.targetUserId)
+        });
+      }
+    });
+
+    res.json({
+      incoming,
+      outgoing,
+      counts: {
+        incoming: incoming.length,
+        outgoing: outgoing.length
+      }
+    });
+  } catch (error) {
+    console.error('Get pending summary error:', error);
+    res.status(500).json({ error: 'Failed to fetch pending summary' });
   }
 };
 
@@ -181,10 +276,7 @@ const getMatchHistory = async (req, res) => {
     const { page = 1, limit = 10, status } = req.query;
 
     const filter = {
-      $or: [
-        { requesterId: userId },
-        { targetUserId: userId }
-      ]
+      $or: [{ requesterId: userId }, { targetUserId: userId }]
     };
 
     if (status) {
@@ -207,7 +299,7 @@ const getMatchHistory = async (req, res) => {
     });
   } catch (error) {
     console.error('Get match history error:', error);
-    res.status(500).json({ error: 'マッチ履歴の取得中にサーバーエラーが発生しました' });
+    res.status(500).json({ error: 'Failed to fetch match history' });
   }
 };
 
@@ -225,7 +317,7 @@ const confirmMeeting = async (req, res) => {
     });
 
     if (!meeting) {
-      return res.status(404).json({ error: 'ミーティングが見つかりません' });
+      return res.status(404).json({ error: 'Meeting not found' });
     }
 
     const match = meeting.matchId;
@@ -233,7 +325,7 @@ const confirmMeeting = async (req, res) => {
     const isTarget = match.targetUserId._id.toString() === userId.toString();
 
     if (!isRequester && !isTarget) {
-      return res.status(403).json({ error: 'このミーティングを確認する権限がありません' });
+      return res.status(403).json({ error: 'Not authorized to confirm this meeting' });
     }
 
     if (isRequester) {
@@ -267,7 +359,7 @@ const confirmMeeting = async (req, res) => {
     }
 
     res.json({
-      message: 'ミーティングを確認しました',
+      message: 'Meeting confirmed',
       meeting: {
         id: meeting._id,
         bothConfirmed: meeting.bothConfirmed,
@@ -277,27 +369,29 @@ const confirmMeeting = async (req, res) => {
     });
   } catch (error) {
     console.error('Confirm meeting error:', error);
-    res.status(500).json({ error: 'ミーティングの確認中にサーバーエラーが発生しました' });
+    res.status(500).json({ error: 'Failed to confirm meeting' });
   }
 };
 
 const matchRequestValidation = [
-  body('targetUserId').isMongoId().withMessage('有効な対象ユーザーIDが必要です'),
-  body('meetingReason').trim().isLength({ min: 5, max: 200 }).withMessage('ミーティングの理由は5文字以上200文字以下で入力してください')
+  body('targetUserId').isMongoId().withMessage('Valid target user ID is required'),
+  body('meetingReason').trim().isLength({ min: 1, max: 200 }).withMessage('Meeting reason must be 1-200 characters'),
+  body('urgency').optional().isIn(['5m', '1h']).withMessage('urgency must be 5m or 1h')
 ];
 
 const matchResponseValidation = [
-  body('matchId').isMongoId().withMessage('有効なマッチIDが必要です'),
-  body('response').isIn(['accepted', 'rejected']).withMessage('応答は承認または拒否である必要があります')
+  body('matchId').isMongoId().withMessage('Valid match ID is required'),
+  body('response').isIn(['accepted', 'rejected']).withMessage('Response must be accepted or rejected')
 ];
 
 const meetingConfirmValidation = [
-  body('meetingId').isMongoId().withMessage('有効なミーティングIDが必要です')
+  body('meetingId').isMongoId().withMessage('Valid meeting ID is required')
 ];
 
 module.exports = {
   sendMatchRequest,
   respondToMatch,
+  getPendingSummary,
   getMatchHistory,
   confirmMeeting,
   matchRequestValidation,

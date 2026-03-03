@@ -20,6 +20,11 @@ const matchSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  urgency: {
+    type: String,
+    enum: ['5m', '1h'],
+    default: '1h'
+  },
   meetingPoint: {
     type: {
       type: String,

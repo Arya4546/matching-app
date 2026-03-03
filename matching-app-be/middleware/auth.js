@@ -12,9 +12,6 @@ const auth = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId).select('-smsCode -smsCodeExpiry');
 
-    console.log('token:', token);
-
-
     // const user = {
     //   "_id": "68d2b6e5cf3427dbf4b6dd7e",
     //   "name": "Michael Chen",
@@ -48,6 +45,10 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ error: 'Phone number not verified.' });
     }
 
+    if (user.isFrozen && user.role !== 'admin') {
+      return res.status(403).json({ error: 'Your account is currently frozen.' });
+    }
+
     req.user = user;
     next();
   } catch (error) {
@@ -71,4 +72,17 @@ const optionalAuth = async (req, res, next) => {
   }
 };
 
-module.exports = { auth, optionalAuth };
+const adminAuth = async (req, res, next) => {
+  try {
+    await auth(req, res, async () => {
+      if (req.user?.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required.' });
+      }
+      next();
+    });
+  } catch (error) {
+    res.status(401).json({ error: 'Token is not valid.' });
+  }
+};
+
+module.exports = { auth, optionalAuth, adminAuth };

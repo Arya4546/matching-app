@@ -30,7 +30,13 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
   const [showStatusTooltip, setShowStatusTooltip] = useState(false);
   const [activeStatusTooltip, setActiveStatusTooltip] = useState(null);
   const [selectedRequestReasons, setSelectedRequestReasons] = useState([]);
-  const [selectedTag, setSelectedTag] = useState('stroll'); // Default selection for visual match
+  const [selectedTag, setSelectedTag] = useState('walk');
+  const [selectedUrgency, setSelectedUrgency] = useState('5m');
+
+  const URGENCY_OPTIONS = [
+    { value: '5m', label: '\u0035\u5206' },
+    { value: '1h', label: '\u0031\u6642\u9593' },
+  ];
 
   // Auto-hide tooltips after a short delay
   useEffect(() => {
@@ -111,6 +117,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      setSelectedUrgency('5m');
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -549,12 +556,14 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
       const requestData = {
         targetUserId: user.id || user._id,
         meetingReason: reason,
+        urgency: selectedUrgency,
         meetingPoint: null,
       };
 
       const response = await matchingAPI.sendMatchRequest(
         requestData.targetUserId,
-        requestData.meetingReason
+        requestData.meetingReason,
+        requestData.urgency
       );
 
       if (response.data) {
@@ -587,6 +596,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
     setSelectedLocation(null);
     setMeetingPoints([]);
     setShowCoordinates(false);
+    setSelectedUrgency('5m');
     MeetingPointsService.selectedMeetingPoint = null;
 
     // Use smooth close animation
@@ -800,6 +810,24 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
             )} */}
             </div>
 
+            <div className="urgency-selector-section">
+              <div className="urgency-selector-title">{'\u7dca\u6025\u5ea6'}</div>
+              <div className="urgency-selector-options">
+                {URGENCY_OPTIONS.map((option) => (
+                  <button
+                    type="button"
+                    key={option.value}
+                    className={`urgency-option-chip ${
+                      selectedUrgency === option.value ? "selected" : ""
+                    }`}
+                    onClick={() => setSelectedUrgency(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Meeting Locations Section */}
             <div className="meeting-locations-section">
               {/* <h4 className="section-title">
@@ -960,6 +988,24 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                 })}
               </div>
 
+              <div className="urgency-selector-section mobile-urgency-selector">
+                <div className="urgency-selector-title">{'\u7dca\u6025\u5ea6'}</div>
+                <div className="urgency-selector-options">
+                  {URGENCY_OPTIONS.map((option) => (
+                    <button
+                      type="button"
+                      key={option.value}
+                      className={`urgency-option-chip ${
+                        selectedUrgency === option.value ? "selected" : ""
+                      }`}
+                      onClick={() => setSelectedUrgency(option.value)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Bio Section */}
               <div className="bio-section">
                 <span className="bio-label">self-introduction</span>
@@ -982,8 +1028,14 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                   className="pill-cta-btn"
                   whileTap={{ scale: 0.96 }}
                   onClick={() => {
-                    const reason = MEETING_REASONS.find(r => r.value === selectedTag)?.label || 'stroll';
-                    onSubmit({ targetUserId: user.id || user._id, meetingReason: reason });
+                    const reason =
+                      MEETING_REASONS.find((r) => r.value === selectedTag)?.label ||
+                      MEETING_REASONS[0].label;
+                    onSubmit({
+                      targetUserId: user.id || user._id,
+                      meetingReason: reason,
+                      urgency: selectedUrgency,
+                    });
                   }}
                   disabled={approachState === "loading"}
                 >

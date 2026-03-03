@@ -1,17 +1,23 @@
-import { HiUserGroup } from "react-icons/hi";
+﻿import { HiUserGroup } from "react-icons/hi";
 import { RiUserHeartFill } from "react-icons/ri";
 import { HiUsers } from "react-icons/hi";
 import { FaListUl } from "react-icons/fa";
 import { BiListUl } from "react-icons/bi";
 import { CgPlayList } from "react-icons/cg";
-import { IoSearch, IoOptionsOutline } from "react-icons/io5";
+import { IoSearch } from "react-icons/io5";
+import { MdAdminPanelSettings } from "react-icons/md";
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLocation } from "../../contexts/LocationContext";
 import { useSocket } from "../../contexts/SocketContext";
 import GoogleMapsService from "../../services/googleMaps";
+import { matchingAPI, userAPI } from "../../services/api";
 import UserPanel from "./UserPanel";
+import EnvironmentSettingsButton from "./EnvironmentSettingsButton";
+import EnvironmentSettingsPanel from "./EnvironmentSettingsPanel";
 import MatchRequestModal from "../matching/MatchRequestModal";
 import MatchResponseModal from "../matching/MatchResponseModal";
 import MeetingModal from "../matching/MeetingModal";
@@ -22,7 +28,8 @@ import "../../styles/MapView.css";
 const MapView = () => {
   const mapRef = useRef(null);
   const loadingUsersRef = useRef(false);
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
+  const navigate = useNavigate();
   const {
     currentLocation,
     getNearbyUsers,
@@ -32,7 +39,15 @@ const MapView = () => {
     loading,
     calculateDistance,
   } = useLocation();
-  const { connected, onlineUsers, matchRequests, updateLocation } = useSocket();
+  const {
+    connected,
+    onlineUsers,
+    matchRequests,
+    outgoingMatchRequests,
+    pendingLifecycleEvents,
+    updateLocation,
+    refreshPendingRequests
+  } = useSocket();
 
   const [mapLoaded, setMapLoaded] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -50,9 +65,24 @@ const MapView = () => {
   const alternationTimerRef = useRef(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshComplete, setRefreshComplete] = useState(false);
+  const [showEnvironmentSettings, setShowEnvironmentSettings] = useState(false);
+  const [isSavingEnvironmentSettings, setIsSavingEnvironmentSettings] = useState(false);
+  const [environmentSettings, setEnvironmentSettings] = useState({
+    theme: "day",
+    range: "1km",
+    style: "standard",
+    isAvailable: true,
+  });
   const originalMapState = useRef(null);
   const [isRealtimeListHidden, setIsRealtimeListHidden] = useState(false);
   const [approachState, setApproachState] = useState("idle"); // idle, loading, success, error
+
+  useEffect(() => {
+    setEnvironmentSettings((prev) => ({
+      ...prev,
+      isAvailable: typeof user?.isAvailable === "boolean" ? user.isAvailable : true,
+    }));
+  }, [user?.isAvailable]);
 
   // Define loadAllUsers first to avoid dependency issues
   const loadAllUsers = useCallback(async () => {
@@ -150,7 +180,7 @@ const MapView = () => {
                 zoom: map.getZoom(),
                 bounds: map.getBounds()
               };
-              console.log('💾 Saved original map state:', originalMapState.current);
+              console.log('Saved original map state:', originalMapState.current);
             }
           }, 500);
         }
@@ -167,11 +197,11 @@ const MapView = () => {
   // Handle map centering when user selection changes
   useEffect(() => {
     if (!mapLoaded || !currentLocation) {
-      console.log('🔄 Map centering useEffect: map not loaded or no current location');
+      console.log('Map centering useEffect: map not loaded or no current location');
       return;
     }
 
-    console.log('🔄 Map centering useEffect triggered:', {
+    console.log('Map centering useEffect triggered:', {
       showUserSelection,
       selectedUserForModal: !!selectedUserForModal,
       currentLocation
@@ -186,7 +216,7 @@ const MapView = () => {
 
       GoogleMapsService.setMapToShowTwoUsers(currentLocation, selectedUserLocation);
       GoogleMapsService.showExclamationMark(selectedUserLocation);
-      console.log('✅ Map centered on both users:', currentLocation, selectedUserLocation);
+      console.log('Map centered on both users:', currentLocation, selectedUserLocation);
     } else if (!showUserSelection && !selectedUserForModal) {
       // Modal is closed - hide exclamation mark and check if we should restore to original state
       GoogleMapsService.hideExclamationMark();
@@ -200,23 +230,23 @@ const MapView = () => {
           const map = window.googleMapsService.map;
           const { center, zoom, bounds } = originalMapState.current;
 
-          console.log('🔄 MapView restoring to original state:', originalMapState.current);
+          console.log('MapView restoring to original state:', originalMapState.current);
 
           if (center && zoom) {
             map.setCenter(center);
             map.setZoom(zoom);
-            console.log('✅ MapView restored original center and zoom');
+            console.log('MapView restored original center and zoom');
           }
 
           if (bounds && !bounds.isEmpty()) {
             setTimeout(() => {
               map.fitBounds(bounds);
-              console.log('✅ MapView restored original bounds');
+              console.log('MapView restored original bounds');
             }, 200);
           }
         }
       } else {
-        console.log('⚠️ MapView useEffect: Modal is restoring, skipping to avoid conflict');
+        console.log('MapView useEffect: modal is restoring, skipping to avoid conflict');
       }
     }
   }, [mapLoaded, currentLocation, showUserSelection, selectedUserForModal]);
@@ -541,12 +571,17 @@ const MapView = () => {
       });
     };
 
+    const handleShowCurrentUserProfile = () => {
+      setShowProfile(true);
+    };
+
     window.addEventListener("requestMatch", handleMatchRequest);
     window.addEventListener("requestMatchWithData", handleMatchRequestWithData);
     window.addEventListener("showMatchRequest", handleShowMatchRequest);
     window.addEventListener("showMatch", handleShowMatch);
     window.addEventListener("showUserSelectionModal", handleShowUserSelection);
     window.addEventListener("showLocationOnMap", handleShowLocationOnMap);
+    window.addEventListener("showCurrentUserProfile", handleShowCurrentUserProfile);
 
     return () => {
       window.removeEventListener("requestMatch", handleMatchRequest);
@@ -558,8 +593,10 @@ const MapView = () => {
       window.removeEventListener("showMatch", handleShowMatch);
       window.removeEventListener("showUserSelectionModal", handleShowUserSelection);
       window.removeEventListener("showLocationOnMap", handleShowLocationOnMap);
+      window.removeEventListener("showCurrentUserProfile", handleShowCurrentUserProfile);
     };
   }, [nearbyUsers]);
+
 
   const loadNearbyUsers = async () => {
     try {
@@ -621,6 +658,44 @@ const MapView = () => {
   const handleMeetingClose = () => {
     setShowMeeting(null);
   };
+
+  const onEnvironmentSettingsClick = useCallback(() => {
+    console.info("[MapView] Environment settings opened (preview)");
+    setShowEnvironmentSettings(true);
+  }, []);
+
+  const onEnvironmentSettingsClose = useCallback(() => {
+    setShowEnvironmentSettings(false);
+  }, []);
+
+  const onEnvironmentSettingsSave = useCallback(
+    async (nextSettings) => {
+      try {
+        setIsSavingEnvironmentSettings(true);
+        const response = await userAPI.setAvailabilityStatus(nextSettings.isAvailable);
+        const persistedAvailability =
+          typeof response?.data?.isAvailable === "boolean"
+            ? response.data.isAvailable
+            : nextSettings.isAvailable;
+
+        const finalSettings = {
+          ...nextSettings,
+          isAvailable: persistedAvailability,
+        };
+
+        setEnvironmentSettings(finalSettings);
+        updateUser({ isAvailable: persistedAvailability });
+        toast.success("\u8a2d\u5b9a\u3092\u4fdd\u5b58\u3057\u307e\u3057\u305f");
+        setShowEnvironmentSettings(false);
+      } catch (error) {
+        console.error("Failed to save environment settings:", error);
+        toast.error("\u8a2d\u5b9a\u306e\u4fdd\u5b58\u306b\u5931\u6557\u3057\u307e\u3057\u305f");
+      } finally {
+        setIsSavingEnvironmentSettings(false);
+      }
+    },
+    [updateUser]
+  );
 
   const toggleUserPanel = async () => {
     if (!userPanelExpanded) {
@@ -690,12 +765,12 @@ const MapView = () => {
 
   const handleUserSelectionSubmit = async (data) => {
     console.log('User selection submitted:', data);
-    // data should contain targetUserId and meetingReason
-    const { targetUserId, meetingReason } = data;
-    await triggerApproach(targetUserId, meetingReason);
+    // data should contain targetUserId, meetingReason and urgency
+    const { targetUserId, meetingReason, urgency } = data;
+    await triggerApproach(targetUserId, meetingReason, urgency);
   };
 
-  const triggerApproach = async (targetUserId, meetingReason) => {
+  const triggerApproach = async (targetUserId, meetingReason, urgency = "1h") => {
     if (approachState === "loading") return;
 
     setApproachState("loading");
@@ -705,16 +780,20 @@ const MapView = () => {
 
       const response = await matchingAPI.sendMatchRequest(
         targetUserId,
-        meetingReason
+        meetingReason,
+        urgency
       );
 
       if (response.data) {
+        refreshPendingRequests();
         setApproachState("success");
         // Success state will be handled inside UserSelectionModal to show success screen
       }
     } catch (error) {
       console.error("Match request error:", error);
-      const message = error.response?.data?.error || "マッチリクエストの送信に失敗しました";
+      const message =
+        error.response?.data?.error ||
+        "\u30de\u30c3\u30c1\u30ea\u30af\u30a8\u30b9\u30c8\u306e\u9001\u4fe1\u306b\u5931\u6557\u3057\u307e\u3057\u305f";
       toast.error(message);
       setApproachState("error");
 
@@ -733,8 +812,8 @@ const MapView = () => {
       <div className="map-loading">
         <div className="loading-content">
           <div className="loading-spinner"></div>
-          <h3>位置情報を取得中...</h3>
-          <p>継続するには位置アクセスを許可してください</p>
+          <h3>{"\u4f4d\u7f6e\u60c5\u5831\u3092\u53d6\u5f97\u4e2d..."}</h3>
+          <p>{"\u7d9a\u884c\u3059\u308b\u306b\u306f\u4f4d\u7f6e\u30a2\u30af\u30bb\u30b9\u3092\u8a31\u53ef\u3057\u3066\u304f\u3060\u3055\u3044"}</p>
         </div>
       </div>
     );
@@ -761,6 +840,16 @@ const MapView = () => {
   const realtimeUsersWithSelf = currentUserEntry
     ? [currentUserEntry, ...realtimeUsers]
     : realtimeUsers;
+  const incomingPendingCount = matchRequests.length;
+  const outgoingPendingCount = outgoingMatchRequests.length;
+  const latestPendingLifecycle = pendingLifecycleEvents[0] || null;
+  const latestPendingLifecycleText = latestPendingLifecycle
+    ? latestPendingLifecycle.status === "accepted"
+      ? "\u627f\u8a8d\u6e08\u307f"
+      : latestPendingLifecycle.status === "rejected"
+        ? "\u8f9e\u9000\u3055\u308c\u307e\u3057\u305f"
+        : "\u66f4\u65b0\u6e08\u307f"
+    : null;
 
   // Check if it's desktop/PC view
   const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 1024 : false;
@@ -805,6 +894,18 @@ const MapView = () => {
             </div>
 
             <div className="header-right">
+              {user?.role === "admin" && (
+                <motion.button
+                  className="figma-header-btn admin-entry-btn"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate("/admin")}
+                  aria-label="Admin panel"
+                  title="Admin panel"
+                >
+                  <MdAdminPanelSettings />
+                </motion.button>
+              )}
               <motion.button
                 className="figma-header-btn"
                 whileHover={{ scale: 1.05 }}
@@ -812,15 +913,9 @@ const MapView = () => {
               >
                 <IoSearch />
               </motion.button>
-
-              <motion.button
-                className="figma-header-btn"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={toggleUserPanel}
-              >
-                <IoOptionsOutline />
-              </motion.button>
+              <EnvironmentSettingsButton
+                onEnvironmentSettingsClick={onEnvironmentSettingsClick}
+              />
             </div>
           </motion.div>
         )}
@@ -838,7 +933,7 @@ const MapView = () => {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={handleLocationRefresh}
-          title="現在地に戻る"
+          title={"\u73fe\u5728\u5730\u306b\u623b\u308b"}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" fill="currentColor" />
@@ -853,7 +948,7 @@ const MapView = () => {
             // Optional: add actual zoom logic here if needed
             // For now, it just matches the figma visual
           }}
-          title="検索"
+          title={"\u691c\u7d22"}
         >
           <IoSearch />
           <span className="zoom-plus-mini">+</span>
@@ -876,16 +971,56 @@ const MapView = () => {
         )}
       </AnimatePresence>
 
-      {matchRequests.length > 0 && (
+      <EnvironmentSettingsPanel
+        isOpen={showEnvironmentSettings}
+        onClose={onEnvironmentSettingsClose}
+        initialSettings={environmentSettings}
+        onSave={onEnvironmentSettingsSave}
+        saving={isSavingEnvironmentSettings}
+      />
+
+      {(incomingPendingCount > 0 || outgoingPendingCount > 0 || latestPendingLifecycleText) && (
         <motion.div
-          className="match-requests-indicator"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          whileHover={{ scale: 1.1 }}
-          onClick={() => setShowMatchResponse(matchRequests[0])}
+          className="pending-state-panel"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 10 }}
         >
-          <span className="notification-badge">{matchRequests.length}</span>
-          マッチリクエスト
+          <div className="pending-state-row">
+            {incomingPendingCount > 0 && (
+              <motion.button
+                className="pending-state-btn incoming"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setShowMatchResponse(matchRequests[0])}
+              >
+                <span className="notification-badge">{incomingPendingCount}</span>
+                <span className="pending-state-label">{"\u53d7\u4fe1\u30ea\u30af\u30a8\u30b9\u30c8"}</span>
+              </motion.button>
+            )}
+
+            {outgoingPendingCount > 0 && (
+              <motion.button
+                className="pending-state-btn outgoing"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() =>
+                  toast.info(
+                    `${outgoingPendingCount}\u4ef6\u306e\u9001\u4fe1\u30ea\u30af\u30a8\u30b9\u30c8\u304c\u8fd4\u7b54\u5f85\u3061\u3067\u3059`
+                  )
+                }
+              >
+                <span className="notification-badge outgoing">{outgoingPendingCount}</span>
+                <span className="pending-state-label">{"\u9001\u4fe1\u4e2d"}</span>
+              </motion.button>
+            )}
+          </div>
+
+          {latestPendingLifecycleText && (
+            <div className="pending-lifecycle-chip">
+              <span>{"\u6700\u8fd1\u306e\u72b6\u614b:"}</span> {latestPendingLifecycleText}
+            </div>
+          )}
         </motion.div>
       )}
 
@@ -942,3 +1077,4 @@ const MapView = () => {
 };
 
 export default MapView;
+

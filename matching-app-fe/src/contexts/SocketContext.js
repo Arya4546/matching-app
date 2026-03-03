@@ -1,9 +1,26 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import io from 'socket.io-client';
-import { useAuth } from './AuthContext';
 import { toast } from 'react-toastify';
+import { matchingAPI } from '../services/api';
+import { useAuth } from './AuthContext';
 
 const SocketContext = createContext();
+const MAX_PENDING_LIFECYCLE_EVENTS = 20;
+
+const upsertRequestByMatchId = (previous, nextRequest) => {
+  if (!nextRequest?.matchId) {
+    return previous;
+  }
+
+  const existingIndex = previous.findIndex((item) => item.matchId === nextRequest.matchId);
+  if (existingIndex === -1) {
+    return [nextRequest, ...previous];
+  }
+
+  return previous.map((item) =>
+    item.matchId === nextRequest.matchId ? { ...item, ...nextRequest } : item
+  );
+};
 
 export const useSocket = () => {
   const context = useContext(SocketContext);
@@ -19,19 +36,55 @@ export const SocketProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(new Map());
   const [matchRequests, setMatchRequests] = useState([]);
+  const [outgoingMatchRequests, setOutgoingMatchRequests] = useState([]);
+  const [pendingLifecycleEvents, setPendingLifecycleEvents] = useState([]);
   const [currentMatches, setCurrentMatches] = useState([]);
 
+  const pushPendingLifecycleEvent = useCallback((event) => {
+    if (!event?.matchId) {
+      return;
+    }
+
+    const normalizedEvent = {
+      matchId: event.matchId,
+      status: event.status || 'resolved',
+      resolvedAt: event.resolvedAt || new Date().toISOString(),
+      meetingReason: event.meetingReason,
+      urgency: event.urgency,
+      otherUserName:
+        event.otherUserName ||
+        event.targetUser?.name ||
+        event.requester?.name ||
+        null
+    };
+
+    setPendingLifecycleEvents((previous) => [normalizedEvent, ...previous].slice(0, MAX_PENDING_LIFECYCLE_EVENTS));
+  }, []);
+
+  const refreshPendingRequests = useCallback(async () => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    try {
+      const response = await matchingAPI.getPendingSummary();
+      setMatchRequests(Array.isArray(response.data?.incoming) ? response.data.incoming : []);
+      setOutgoingMatchRequests(Array.isArray(response.data?.outgoing) ? response.data.outgoing : []);
+    } catch (error) {
+      console.error('Failed to hydrate pending request summary:', error);
+    }
+  }, [isAuthenticated]);
+
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user?.id) {
       const token = localStorage.getItem('authToken');
-      
       const socketUrl = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
 
       try {
         new URL(socketUrl);
       } catch (error) {
         console.error('Invalid socket URL:', socketUrl);
-        return;
+        return undefined;
       }
 
       const newSocket = io(socketUrl, {
@@ -39,13 +92,13 @@ export const SocketProvider = ({ children }) => {
         transports: ['websocket', 'polling']
       });
 
+      refreshPendingRequests();
+
       newSocket.on('connect', () => {
-        console.log('Socket connected:', newSocket.id);
         setConnected(true);
       });
 
       newSocket.on('disconnect', () => {
-        console.log('Socket disconnected');
         setConnected(false);
       });
 
@@ -55,8 +108,8 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('userOnline', (data) => {
-        setOnlineUsers(prev => {
-          const updated = new Map(prev);
+        setOnlineUsers((previous) => {
+          const updated = new Map(previous);
           updated.set(data.userId, {
             id: data.userId,
             name: data.name,
@@ -70,8 +123,8 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('userOffline', (data) => {
-        setOnlineUsers(prev => {
-          const updated = new Map(prev);
+        setOnlineUsers((previous) => {
+          const updated = new Map(previous);
           if (updated.has(data.userId)) {
             updated.set(data.userId, {
               ...updated.get(data.userId),
@@ -84,8 +137,8 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('userLocationUpdate', (data) => {
-        setOnlineUsers(prev => {
-          const updated = new Map(prev);
+        setOnlineUsers((previous) => {
+          const updated = new Map(previous);
           if (updated.has(data.userId)) {
             updated.set(data.userId, {
               ...updated.get(data.userId),
@@ -98,44 +151,76 @@ export const SocketProvider = ({ children }) => {
       });
 
       newSocket.on('newMatchRequest', (data) => {
-        setMatchRequests(prev => [...prev, data]);
-        toast.info(`${data.requester.name}から新しいマッチリクエストが届きました`, {
+        setMatchRequests((previous) => upsertRequestByMatchId(previous, data));
+        const requesterName = data?.requester?.name || 'A user';
+        toast.info(`${requesterName} sent you a meeting request.`, {
           onClick: () => window.dispatchEvent(new CustomEvent('showMatchRequest', { detail: data }))
         });
       });
 
+      newSocket.on('outgoingMatchPending', (data) => {
+        setOutgoingMatchRequests((previous) => upsertRequestByMatchId(previous, data));
+      });
+
       newSocket.on('matchAccepted', (data) => {
-        setCurrentMatches(prev => [...prev, data]);
-        toast.success(`${data.targetUser.name}があなたのマッチリクエストを承認しました！`, {
+        setCurrentMatches((previous) => [...previous, data]);
+        setOutgoingMatchRequests((previous) =>
+          previous.filter((requestItem) => requestItem.matchId !== data.matchId)
+        );
+        pushPendingLifecycleEvent({
+          ...data,
+          status: 'accepted',
+          otherUserName: data?.targetUser?.name
+        });
+
+        const targetName = data?.targetUser?.name || 'The user';
+        toast.success(`${targetName} accepted your meeting request.`, {
           onClick: () => window.dispatchEvent(new CustomEvent('showMatch', { detail: data }))
         });
       });
 
       newSocket.on('matchRejected', (data) => {
-        toast.error('あなたのマッチリクエストは断られました');
+        setOutgoingMatchRequests((previous) =>
+          previous.filter((requestItem) => requestItem.matchId !== data.matchId)
+        );
+        pushPendingLifecycleEvent({
+          ...data,
+          status: 'rejected'
+        });
+        toast.info('Your meeting request was declined.');
+      });
+
+      newSocket.on('incomingMatchResolved', (data) => {
+        setMatchRequests((previous) =>
+          previous.filter((requestItem) => requestItem.matchId !== data.matchId)
+        );
+        pushPendingLifecycleEvent(data);
       });
 
       newSocket.on('matchConfirmed', (data) => {
-        setCurrentMatches(prev => [...prev, data]);
-        toast.success('マッチが確認されました！待ち合わせの詳細が利用できます。', {
+        setCurrentMatches((previous) => [...previous, data]);
+        setMatchRequests((previous) =>
+          previous.filter((requestItem) => requestItem.matchId !== data.matchId)
+        );
+        toast.success('Match confirmed. Meeting details are now available.', {
           onClick: () => window.dispatchEvent(new CustomEvent('showMatch', { detail: data }))
         });
       });
 
       newSocket.on('meetingConfirmed', (data) => {
         if (data.bothConfirmed) {
-          toast.success('両者とも待ち合わせを確認しました！');
+          toast.success('Both users confirmed the meeting.');
         } else {
-          toast.info(`${data.confirmedBy}が待ち合わせを確認しました`);
+          toast.info(`${data.confirmedBy} confirmed the meeting.`);
         }
       });
 
       newSocket.on('userApproachingMeeting', (data) => {
-        toast.info(`${data.userName}が待ち合わせ場所に近づいています`);
+        toast.info(`${data.userName} is approaching the meeting point.`);
       });
 
       newSocket.on('locationShared', (data) => {
-        toast.info(`${data.senderName}があなたと位置情報を共有しました`);
+        toast.info(`${data.senderName} shared their location with you.`);
         window.dispatchEvent(new CustomEvent('locationShared', { detail: data }));
       });
 
@@ -152,17 +237,22 @@ export const SocketProvider = ({ children }) => {
       return () => {
         newSocket.close();
       };
-    } else {
-      if (socket) {
-        socket.close();
-        setSocket(null);
-        setConnected(false);
-        setOnlineUsers(new Map());
-        setMatchRequests([]);
-        setCurrentMatches([]);
-      }
     }
-  }, [isAuthenticated, user?.id]);
+
+    setSocket((existingSocket) => {
+      if (existingSocket) {
+        existingSocket.close();
+      }
+      return null;
+    });
+    setConnected(false);
+    setOnlineUsers(new Map());
+    setMatchRequests([]);
+    setOutgoingMatchRequests([]);
+    setPendingLifecycleEvents([]);
+    setCurrentMatches([]);
+    return undefined;
+  }, [isAuthenticated, pushPendingLifecycleEvent, refreshPendingRequests, user?.id]);
 
   const updateLocation = (lat, lng) => {
     if (socket && connected) {
@@ -207,7 +297,13 @@ export const SocketProvider = ({ children }) => {
   };
 
   const removeMatchRequest = (matchId) => {
-    setMatchRequests(prev => prev.filter(req => req.matchId !== matchId));
+    setMatchRequests((previous) => previous.filter((requestItem) => requestItem.matchId !== matchId));
+  };
+
+  const removeOutgoingMatchRequest = (matchId) => {
+    setOutgoingMatchRequests((previous) =>
+      previous.filter((requestItem) => requestItem.matchId !== matchId)
+    );
   };
 
   const value = {
@@ -215,6 +311,8 @@ export const SocketProvider = ({ children }) => {
     connected,
     onlineUsers: Array.from(onlineUsers.values()),
     matchRequests,
+    outgoingMatchRequests,
+    pendingLifecycleEvents,
     currentMatches,
     updateLocation,
     joinRoom,
@@ -223,12 +321,10 @@ export const SocketProvider = ({ children }) => {
     notifyApproachingMeeting,
     requestLocationShare,
     shareLocation,
-    removeMatchRequest
+    removeMatchRequest,
+    removeOutgoingMatchRequest,
+    refreshPendingRequests
   };
 
-  return (
-    <SocketContext.Provider value={value}>
-      {children}
-    </SocketContext.Provider>
-  );
+  return <SocketContext.Provider value={value}>{children}</SocketContext.Provider>;
 };

@@ -21,7 +21,8 @@ The application must prioritize:
 All UI must strictly follow the provided Figma design:
 
 **Figma Link:**\
-https://www.figma.com/design/WH7HyYZAvLcj89Mdm0Br8U/matching-app?node-id=0-1&p=f&t=vMvZh2eSEciXRCQq-0
+https://www.figma.com/design/WH7HyYZAvLcj89Mdm0Br8U/matching-app?node-id=0-1&p=f&t=vMvZh2eSEciXRCQq-0,
+https://www.figma.com/design/sTgU51pMkY87FviXUhjCJn/Social-App?node-id=0-1&p=f&t=QOFKQ2Cvrm2QnPK1-0
 
 ### Design Rules
 

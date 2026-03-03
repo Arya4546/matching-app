@@ -21,10 +21,16 @@ const MEETING_REASONS = [
   { value: "other", label: "その他", emoji: "" },
 ];
 
+const URGENCY_OPTIONS = [
+  { value: "5m", label: "5分" },
+  { value: "1h", label: "1時間" },
+];
+
 const MatchRequestModal = ({ targetUser, onClose }) => {
   const { currentLocation } = useLocation();
   const [selectedReason, setSelectedReason] = useState("");
   const [customReason, setCustomReason] = useState("");
+  const [selectedUrgency, setSelectedUrgency] = useState("5m");
   const [selectedMeetingPoint, setSelectedMeetingPoint] = useState(null);
   const [meetingPoints, setMeetingPoints] = useState([]);
   const [loadingPoints, setLoadingPoints] = useState(false);
@@ -307,6 +313,7 @@ const MatchRequestModal = ({ targetUser, onClose }) => {
       const requestData = {
         targetUserId: targetUser.id || targetUser._id,
         meetingReason: reason,
+        urgency: selectedUrgency,
         meetingPoint: selectedMeetingPoint
           ? {
               name: selectedMeetingPoint.name,
@@ -318,7 +325,8 @@ const MatchRequestModal = ({ targetUser, onClose }) => {
 
       const response = await matchingAPI.sendMatchRequest(
         requestData.targetUserId,
-        requestData.meetingReason
+        requestData.meetingReason,
+        requestData.urgency
       );
 
       if (response.data) {
@@ -488,6 +496,24 @@ const MatchRequestModal = ({ targetUser, onClose }) => {
                       </span>
                     </motion.div>
                   )}
+
+                  <div className="urgency-selector">
+                    <label>緊急度</label>
+                    <div className="urgency-options">
+                      {URGENCY_OPTIONS.map((option) => (
+                        <button
+                          type="button"
+                          key={option.value}
+                          className={`urgency-option ${
+                            selectedUrgency === option.value ? "selected" : ""
+                          }`}
+                          onClick={() => setSelectedUrgency(option.value)}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </motion.div>
               </AnimatePresence>
             )}

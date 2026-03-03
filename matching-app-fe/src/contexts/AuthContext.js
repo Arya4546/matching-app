@@ -17,31 +17,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [pendingVerification, setPendingVerification] = useState(null);
 
-  const validateToken = async (token) => {
-    try {
-      // Make a simple request to validate the token
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/users/profile`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      // Only return false for actual 401 Unauthorized
-      if (response.status === 401) {
-        return false;
-      }
-
-      // For any other response (including errors), assume token is valid
-      return true;
-    } catch (error) {
-      // If backend is not running or network error, assume token is valid
-      // This prevents logout due to temporary network issues
-      console.log('Token validation error (assuming valid):', error.message);
-      return true;
-    }
-  };
-
   useEffect(() => {
     const initializeAuth = async () => {
       const token = localStorage.getItem('authToken');
@@ -50,21 +25,38 @@ export const AuthProvider = ({ children }) => {
       if (token && userData) {
         try {
           const parsedUser = JSON.parse(userData);
+          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
 
-          // Validate token if backend is running
-          const isValidToken = await validateToken(token);
-
-          if (isValidToken) {
-            setUser(parsedUser);
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+          } else if (response.ok) {
+            const data = await response.json();
+            if (data?.user) {
+              setUser(data.user);
+              localStorage.setItem('user', JSON.stringify(data.user));
+            } else {
+              setUser(parsedUser);
+            }
           } else {
-            // Token is invalid, clear storage
+            // Keep local session for temporary backend/server errors.
+            setUser(parsedUser);
+          }
+        } catch (error) {
+          console.error('Auth initialization error:', error);
+          // Network failures should not force logout; keep local data.
+          try {
+            const parsedUser = JSON.parse(userData);
+            setUser(parsedUser);
+          } catch (parseError) {
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
           }
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
         }
       }
 
@@ -173,8 +165,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const updateUser = (userData) => {
-    setUser(prev => ({ ...prev, ...userData }));
-    localStorage.setItem('user', JSON.stringify({ ...user, ...userData }));
+    setUser((prev) => {
+      const nextUser = { ...(prev || {}), ...userData };
+      localStorage.setItem('user', JSON.stringify(nextUser));
+      return nextUser;
+    });
   };
 
   const setUserDirectly = (userData) => {

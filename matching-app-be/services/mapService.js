@@ -45,8 +45,9 @@ const getUsersForMap = async (currentUser, lat, lng, radius = 100000) => {
           $maxDistance: parseInt(radius)
         }
       },
-      isOnline: true // Only show online users on map
-    }).select('name gender location profilePhoto bio isOnline lastSeen matchCount');
+      isAvailable: { $ne: false },
+      isFrozen: { $ne: true }
+    }).select('name gender location profilePhoto bio isOnline isAvailable lastSeen matchCount');
 
     // Enhance users with map-specific data
     const mapUsers = nearbyUsers.map(user => {
@@ -67,6 +68,7 @@ const getUsersForMap = async (currentUser, lat, lng, radius = 100000) => {
         },
         distance: Math.round(distance),
         isOnline: user.isOnline,
+        isAvailable: user.isAvailable !== false,
         lastSeen: user.lastSeen,
         matchCount: user.matchCount,
         // Add map marker properties

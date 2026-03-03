@@ -17,7 +17,7 @@ import "../../styles/Modal.css";
 
 const MatchResponseModal = ({ matchRequest, onClose }) => {
   const [loading, setLoading] = useState(false);
-  const { removeMatchRequest } = useSocket();
+  const { removeMatchRequest, refreshPendingRequests } = useSocket();
 
   const handleResponse = async (response) => {
     if (!matchRequest) return;
@@ -36,6 +36,7 @@ const MatchResponseModal = ({ matchRequest, onClose }) => {
       }
 
       removeMatchRequest(matchRequest.matchId);
+      refreshPendingRequests();
       onClose();
     } catch (error) {
       console.error("Match response error:", error);
@@ -53,6 +54,12 @@ const MatchResponseModal = ({ matchRequest, onClose }) => {
     const lat = meetingPoint.coordinates[1].toFixed(4);
     const lng = meetingPoint.coordinates[0].toFixed(4);
     return meetingPoint.address || `${lat}, ${lng}`;
+  };
+
+  const formatUrgency = (urgency) => {
+    if (urgency === "5m") return "5分";
+    if (urgency === "1h") return "1時間";
+    return "未設定";
   };
 
   const modalVariants = {
@@ -133,6 +140,16 @@ const MatchResponseModal = ({ matchRequest, onClose }) => {
                 </span>
                 <span className="detail-value">
                   {matchRequest.meetingReason}
+                </span>
+              </div>
+
+              <div className="detail-item">
+                <span className="detail-label">
+                  <Clock size={16} className="inline-icon" />
+                  Urgency:
+                </span>
+                <span className="detail-value">
+                  {formatUrgency(matchRequest.urgency)}
                 </span>
               </div>
 

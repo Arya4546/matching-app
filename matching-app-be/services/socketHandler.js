@@ -26,6 +26,10 @@ const socketHandler = (io) => {
         throw new Error('User not found');
       }
 
+      if (user.isFrozen && user.role !== 'admin') {
+        throw new Error('Account is frozen');
+      }
+
       socket.userId = user._id.toString();
       socket.user = user;
       console.log(`🔌 Socket authenticated: ${user.name} (${socket.id})`);

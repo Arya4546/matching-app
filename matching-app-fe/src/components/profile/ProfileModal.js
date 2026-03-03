@@ -60,8 +60,8 @@ const ProfileModal = ({ onClose }) => {
         }
 
         // Get userId from JWT token
-        const user = JSON.parse(localStorage.getItem('user'));
-        const userId = user.id;
+        const localUser = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = localUser.id || localUser._id;
         if (!userId) {
           console.error('No user ID found in token');
           return;
@@ -170,8 +170,8 @@ const ProfileModal = ({ onClose }) => {
       }
 
       // Get userId from localStorage user data
-      const user = JSON.parse(localStorage.getItem('user'));
-      const userId = user.id;
+      const localUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const userId = localUser.id || localUser._id;
 
       if (!userId) {
         alert('ユーザーIDが見つかりません。再度ログインしてください。');
