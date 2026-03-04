@@ -15,8 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+import { userAPI } from "../../services/api";
 import "../../styles/Modal.css";
 import "../../styles/ProfileFigma.css";
 
@@ -68,11 +67,7 @@ const ProfileModal = ({ onClose }) => {
         }
 
         // Fetch latest user data from database
-        const response = await axios.get(`/api/users/profile/${userId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const response = await userAPI.getUserProfile(userId);
 
         console.log('response=========', response);
         if (response.data && response.data.user) {
@@ -193,12 +188,7 @@ const ProfileModal = ({ onClose }) => {
 
       console.log('Sending profile update request:', requestData);
 
-      const response = await axios.post('/api/users/update-profile', requestData, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      const response = await userAPI.updateProfile(requestData);
 
       console.log('Profile update successful:', response.data);
 
