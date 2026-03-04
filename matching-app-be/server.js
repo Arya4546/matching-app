@@ -28,19 +28,42 @@ const DEFAULT_ALLOWED_ORIGINS = [
 
 const getAllowedOrigins = () => {
   const rawOrigins = process.env.CORS_ORIGINS || process.env.CORS_ORIGIN || '';
-  const parsedOrigins = rawOrigins
+  const extraOrigins = process.env.FRONTEND_URL || '';
+  const parsedOrigins = `${rawOrigins},${extraOrigins}`
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
   return parsedOrigins.length > 0 ? parsedOrigins : DEFAULT_ALLOWED_ORIGINS;
 };
 
+const getAllowedOriginRegexes = () => {
+  const raw = process.env.CORS_ORIGIN_REGEX || '';
+  return raw
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map((pattern) => {
+      try {
+        return new RegExp(pattern);
+      } catch (error) {
+        console.warn(`Invalid CORS_ORIGIN_REGEX pattern ignored: ${pattern}`);
+        return null;
+      }
+    })
+    .filter(Boolean);
+};
+
 const allowedOrigins = getAllowedOrigins();
+const allowedOriginRegexes = getAllowedOriginRegexes();
 const debugRoutesEnabled = process.env.ENABLE_DEBUG_ROUTES === 'true';
 const debugApiToken = process.env.DEBUG_API_TOKEN || '';
 
 const validateCorsOrigin = (origin, callback) => {
-  if (!origin || allowedOrigins.includes(origin)) {
+  const matchesRegex = origin
+    ? allowedOriginRegexes.some((regex) => regex.test(origin))
+    : false;
+
+  if (!origin || allowedOrigins.includes(origin) || matchesRegex) {
     return callback(null, true);
   }
 
