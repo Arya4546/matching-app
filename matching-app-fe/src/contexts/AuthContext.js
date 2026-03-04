@@ -25,21 +25,17 @@ export const AuthProvider = ({ children }) => {
       if (token && userData) {
         try {
           const parsedUser = JSON.parse(userData);
-          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/auth/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
+          const response = await authAPI.getCurrentUser();
+          const statusCode = response?.status;
 
-          if (response.status === 401 || response.status === 403) {
+          if (statusCode === 401 || statusCode === 403) {
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
-          } else if (response.ok) {
-            const data = await response.json();
-            if (data?.user) {
-              setUser(data.user);
-              localStorage.setItem('user', JSON.stringify(data.user));
+          } else if (response?.data?.user) {
+            const latestUser = response.data.user;
+            if (latestUser) {
+              setUser(latestUser);
+              localStorage.setItem('user', JSON.stringify(latestUser));
             } else {
               setUser(parsedUser);
             }

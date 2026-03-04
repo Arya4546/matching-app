@@ -5,7 +5,7 @@ const DATA_IMAGE_REGEX = /^data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+$/;
 const isValidImageSource = (value) => {
   if (typeof value !== 'string') return false;
   const trimmed = value.trim();
-  if (!trimmed) return false;
+  if (!trimmed) return true;
   if (DATA_IMAGE_REGEX.test(trimmed)) return true;
 
   try {
