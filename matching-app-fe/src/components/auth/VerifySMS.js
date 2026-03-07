@@ -228,8 +228,8 @@ const VerifySMS = () => {
               コードが届かない場合 <span className="auth-link" style={{ margin: 0 }}>再送信</span>
             </button>
           ) : (
-            <p className="resend-timer" style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-              <span className="timer-count" style={{ color: 'var(--primary-mint)', fontWeight: '700', marginRight: '4px' }}>{resendTimer}秒</span>後に再送信可能
+            <p className="resend-timer" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>
+              <span className="timer-count" style={{ color: '#03C38A', fontWeight: '700', marginRight: '4px' }}>{resendTimer}秒</span>後に再送信可能
             </p>
           )}
         </div>

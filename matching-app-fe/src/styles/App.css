@@ -27,7 +27,7 @@ body {
   justify-content: center;
   height: 100vh;
   background: #f8f9fa;
-  color: #00C194;
+  color: #03C38A;
   font-size: 18px;
 }
 
@@ -43,7 +43,8 @@ body {
 .btn {
   padding: 12px 24px;
   border: none;
-  border-radius: 25px;
+  border-radius: 12px;
+  /* Figma specification */
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -53,7 +54,8 @@ body {
   justify-content: center;
   gap: 8px;
   text-decoration: none;
-  min-height: 48px;
+  min-height: 52px;
+  /* Specific standard */
 }
 
 .btn:disabled {
@@ -62,44 +64,44 @@ body {
 }
 
 .btn-primary {
-  background: #00C194;
-  color: white;
-  box-shadow: 0 8px 20px rgba(0, 193, 148, 0.25);
+  background: #03C38A;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(3, 195, 138, 0.25);
   width: 100%;
   padding: 12px 24px;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #00AB84;
-  box-shadow: 0 10px 25px rgba(0, 193, 148, 0.35);
+  background: #02A875;
+  box-shadow: 0 10px 25px rgba(3, 195, 138, 0.35);
   transform: translateY(-2px);
 }
 
 .btn-secondary {
   background: #ffffff;
-  color: #00C194;
-  border: 1px solid #00C194;
+  color: #03C38A;
+  border: 1px solid #03C38A;
 }
 
 .btn-secondary:hover:not(:disabled) {
   background: #f8fafc;
-  border-color: #00AB84;
-  color: #00AB84;
+  border-color: #02A875;
+  color: #02A875;
   transform: translateY(-2px);
 }
 
 .btn-outline {
   background: transparent;
-  color: #00C194;
-  border: 1px solid #00C194;
+  color: #03C38A;
+  border: 1px solid #03C38A;
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: rgba(0, 193, 148, 0.05);
-  border-color: #00AB84;
-  color: #00AB84;
+  background: rgba(3, 195, 138, 0.05);
+  border-color: #02A875;
+  color: #02A875;
 }
 
 .btn-danger {
@@ -203,8 +205,8 @@ body {
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #00C194;
-  box-shadow: 0 0 0 2px rgba(0, 193, 148, 0.1);
+  border-color: #03C38A;
+  box-shadow: 0 0 0 2px rgba(3, 195, 138, 0.1);
 }
 
 .form-group input.error,

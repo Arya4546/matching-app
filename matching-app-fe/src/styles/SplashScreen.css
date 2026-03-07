@@ -4,7 +4,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: #00C194;
+  background: #03C38A;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,11 +64,11 @@
   .logo {
     font-size: 60px;
   }
-  
+
   .app-title {
     font-size: 36px;
   }
-  
+
   .app-tagline {
     font-size: 18px;
   }
@@ -78,11 +78,11 @@
   .logo {
     font-size: 50px;
   }
-  
+
   .app-title {
     font-size: 28px;
   }
-  
+
   .app-tagline {
     font-size: 16px;
   }

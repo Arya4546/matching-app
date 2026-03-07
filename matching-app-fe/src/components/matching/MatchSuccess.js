@@ -18,20 +18,10 @@ const MatchSuccess = ({ user, onReturn }) => {
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", damping: 15, stiffness: 200, delay: 0.2 }}
                 >
-                    <FaHeart size={80} className="success-heart" />
-                    <motion.div
-                        className="success-ripple"
-                        initial={{ scale: 1, opacity: 0.8 }}
-                        animate={{ scale: 2, opacity: 0 }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                        style={{
-                            position: 'absolute',
-                            width: '100px',
-                            height: '100px',
-                            borderRadius: '50%',
-                            border: '2px solid #00C194',
-                        }}
-                    />
+                    {/* SVG Checkmark */}
+                    <svg className="success-heart" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
                 </motion.div>
 
                 <motion.div
@@ -47,27 +37,45 @@ const MatchSuccess = ({ user, onReturn }) => {
                 </motion.div>
 
                 <motion.div
-                    className="success-user-card"
+                    className="success-profiles-container"
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.6 }}
                 >
-                    <img
-                        src={user?.profilePhoto || "https://randomuser.me/api/portraits/men/32.jpg"}
-                        alt={user?.name}
-                        className="success-user-avatar"
-                    />
-                    <div className="success-user-info">
-                        <span className="success-user-name">{user?.name}</span>
-                        <span className="success-user-tag">@matching_partner</span>
-                    </div>
+                    {/* User 1: Logged in User (Placeholder top-left) */}
+                    <motion.div
+                        className="success-user-card top-left"
+                        initial={{ x: -20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: 0.8 }}
+                    >
+                        <img
+                            src={"https://randomuser.me/api/portraits/women/44.jpg"} // Placeholder for current user
+                            alt="You"
+                            className="success-user-avatar"
+                        />
+                    </motion.div>
+
+                    {/* User 2: Matched User */}
+                    <motion.div
+                        className="success-user-card bottom-right"
+                        initial={{ x: 20, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: 0.9 }}
+                    >
+                        <img
+                            src={user?.profilePhoto || "https://randomuser.me/api/portraits/men/32.jpg"}
+                            alt={user?.name}
+                            className="success-user-avatar"
+                        />
+                    </motion.div>
                 </motion.div>
 
                 <motion.div
                     className="success-actions"
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.8 }}
+                    transition={{ delay: 1.1 }}
                 >
                     <button className="btn-return-map" onClick={onReturn}>
                         マップに戻る

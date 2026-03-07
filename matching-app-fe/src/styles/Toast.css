@@ -6,7 +6,9 @@
 }
 
 .custom-toast-container {
-  z-index: 9999;
+  z-index: 99999 !important;
+  top: 75px !important;
+  /* Moves down below typical navbar */
 }
 
 .custom-toast-container .Toastify__toast {
@@ -151,6 +153,7 @@
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -162,6 +165,7 @@
     transform: translateX(0);
     opacity: 1;
   }
+
   to {
     transform: translateX(100%);
     opacity: 0;
@@ -177,13 +181,13 @@
     min-height: 50px;
     font-size: 13px;
   }
-  
+
   .Toastify__toast-icon {
     width: 18px;
     height: 18px;
     margin-right: 10px;
   }
-  
+
   .Toastify__close-button {
     width: 18px;
     height: 18px;
@@ -197,11 +201,11 @@
     border: 1px solid #404040;
     color: #ffffff;
   }
-  
+
   .Toastify__close-button {
     color: #b3b3b3;
   }
-  
+
   .Toastify__close-button:hover {
     background: #404040;
     color: #ffffff;

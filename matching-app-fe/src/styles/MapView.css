@@ -94,7 +94,7 @@
   right: -2px;
   bottom: -2px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #00C194, #f54d6a, #00C194);
+  background: linear-gradient(45deg, #03C38A, #f54d6a, #03C38A);
   background-size: 200% 200%;
   animation: avatarGlow 3s ease-in-out infinite;
   z-index: -1;
@@ -179,8 +179,8 @@
   display: inline-block;
   animation: pulse-dot 2s infinite;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: #00C194;
-  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+  background: #03C38A;
+  box-shadow: 0 2px 6px rgba(3, 195, 138, 0.4);
   position: relative;
 }
 
@@ -192,7 +192,7 @@
   right: -2px;
   bottom: -2px;
   border-radius: 50%;
-  background: rgba(0, 193, 148, 0.2);
+  background: rgba(3, 195, 138, 0.2);
   animation: ripple 2s infinite;
 }
 
@@ -278,8 +278,8 @@
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   /* Soft shadow from Figma */
-  color: #00C194;
-  /* Mint green from Figma */
+  color: #2ABB7F;
+  /* Action Green */
   font-size: 24px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -452,8 +452,8 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  color: #00C194;
-  /* Mint green */
+  color: #2ABB7F;
+  /* Action green */
   cursor: pointer;
   z-index: 1000;
   transition: all 0.2s ease;
@@ -629,7 +629,7 @@
   top: calc(100% - 80px);
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #00C194 0%, #00AB84 100%);
+  background: linear-gradient(135deg, #03C38A 0%, #02A875 100%);
   backdrop-filter: blur(10px);
   border: none;
   padding: 16px 24px;
@@ -1123,8 +1123,8 @@
 
 .figma-header-btn {
   background: white;
-  border: 1px solid #00C194;
-  color: #00C194;
+  border: 1px solid #2ABB7F;
+  color: #2ABB7F;
   border-radius: 50%;
   width: 44px;
   height: 44px;
@@ -1143,18 +1143,18 @@
 }
 
 .environment-settings-btn:focus-visible {
-  outline: 2px solid rgba(0, 193, 148, 0.45);
+  outline: 2px solid rgba(42, 187, 127, 0.45);
   outline-offset: 2px;
 }
 
 .environment-settings-icon {
   font-size: 24px;
-  color: #00C194;
+  color: #2ABB7F;
   pointer-events: none;
 }
 
 .admin-entry-btn {
-  color: #00c194;
+  color: #2ABB7F;
 }
 
 .env-settings-overlay {

@@ -45,8 +45,9 @@
   height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #00C194;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 3px solid #03C38A;
+  /* Mint Green */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
 }
 
@@ -58,7 +59,7 @@
   position: absolute;
   bottom: 0px;
   right: 3px;
-  background: #00C194;
+  background: #03C38A;
   border: none;
   width: 36px;
   height: 36px;
@@ -98,7 +99,8 @@
   display: block;
   font-size: 32px;
   font-weight: 700;
-  color: #00C194;
+  color: #03C38A;
+  /* Mint Green */
   margin-bottom: 8px;
   line-height: 1;
 }
@@ -154,8 +156,8 @@
 .form-section input:focus,
 .form-section textarea:focus {
   outline: none;
-  border-color: #00C194;
-  box-shadow: 0 0 0 2px rgba(74, 193, 224, 0.1);
+  border-color: #03C38A;
+  box-shadow: 0 0 0 2px rgba(3, 195, 138, 0.1);
   background: #ffffff;
 }
 
@@ -213,9 +215,9 @@
 /* Button Variants for Profile */
 .btn-outline {
   background: transparent;
-  color: #00C194;
-  border: 2px solid #00C194;
-  border-radius: 25px;
+  color: #03C38A;
+  border: 2px solid #03C38A;
+  border-radius: 12px;
 }
 
 .btn-outline:hover:not(:disabled) {
@@ -246,7 +248,7 @@
   transform: translateX(-50%);
   width: 40px;
   height: 3px;
-  background: #00C194;
+  background: #03C38A;
   border-radius: 2px;
 }
 
@@ -262,13 +264,13 @@
 
 .form-section:hover {
   background: #ffffff;
-  border-color: #00C194;
+  border-color: #03C38A;
 }
 
 .form-section:focus-within {
   background: #ffffff;
-  border-color: #00C194;
-  box-shadow: 0 0 0 2px rgba(74, 193, 224, 0.1);
+  border-color: #03C38A;
+  box-shadow: 0 0 0 2px rgba(3, 195, 138, 0.1);
 }
 
 /* Mobile Responsive */
@@ -371,7 +373,7 @@
 }
 
 .profile-card::-webkit-scrollbar-thumb {
-  background: #00C194;
+  background: #03C38A;
   border-radius: 4px;
 }
 
