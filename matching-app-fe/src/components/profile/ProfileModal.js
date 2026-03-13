@@ -1,15 +1,12 @@
 import { RiStarSmileFill } from "react-icons/ri";
 import { HiUsers } from "react-icons/hi";
 import { SiGotomeeting } from "react-icons/si";
-import { MdDateRange } from "react-icons/md";
+import { MdDateRange, MdOutlineDateRange, MdLunchDining, MdOutlineRamenDining, MdEmergency, MdOutlineBento, MdOutlineDriveFileRenameOutline } from "react-icons/md";
 import { IoMdWalk } from "react-icons/io";
-import { MdLunchDining } from "react-icons/md";
-import { FaHeart } from "react-icons/fa";
-import { MdEmergency } from "react-icons/md";
-import { BiFemale } from "react-icons/bi";
-import { BiMale } from "react-icons/bi";
-import { MdOutlineDriveFileRenameOutline } from "react-icons/md";
-import { IoChevronDown, IoSearch, IoOptionsOutline } from "react-icons/io5";
+import { IoWalkOutline, IoChevronDown, IoSearch, IoOptionsOutline } from "react-icons/io5";
+import { FaHeart, FaHandHoldingHeart, FaHandshake } from "react-icons/fa";
+import { FiHeart, FiBell } from "react-icons/fi";
+import { BiFemale, BiMale } from "react-icons/bi";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
@@ -265,10 +262,10 @@ const ProfileModal = ({ onClose }) => {
   };
 
   const MEETING_REASONS = [
-    { value: "meeting", label: "出会い", emoji: <FaHeart />, icon: "meeting", color: "#00C194" },
-    { value: "lunch", label: "食事", emoji: <MdLunchDining />, icon: "lunch", color: "#00C194" },
-    { value: "walk", label: "散歩", emoji: <IoMdWalk />, icon: "walk", color: "#00C194" },
-    { value: "urgent", label: "緊急", emoji: <MdEmergency />, icon: "urgent", color: "#00C194" },
+    { value: "meeting", label: "出会い", emoji: <FiHeart />, icon: "meeting", color: "#00C194" },
+    { value: "lunch", label: "食事", emoji: <MdOutlineBento />, icon: "lunch", color: "#00C194" },
+    { value: "walk", label: "散歩", emoji: <IoWalkOutline />, icon: "walk", color: "#00C194" },
+    { value: "urgent", label: "緊急", emoji: <FiBell />, icon: "urgent", color: "#00C194" },
   ];
 
   const toggleReason = (val) => {
@@ -332,36 +329,27 @@ const ProfileModal = ({ onClose }) => {
                 border: 'none',
                 padding: 0,
                 position: 'relative',
-                width: 32,
-                height: 32,
+                width: 44,
+                height: 44,
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
-              }}>
+                justifyContent: 'center',
+                cursor: 'pointer'
+              }} onClick={onClose}>
                 <img
-                  src={user?.profilePhoto || "https://randomuser.me/api/portraits/men/32.jpg"}
+                  src={currentUser?.profilePhoto || "https://randomuser.me/api/portraits/men/32.jpg"}
                   alt="Profile"
-                  className="profile-avatar"
-                  style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                  style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover' }}
                 />
-                <span className="connection-status connected" style={{
-                  position: 'absolute',
-                  bottom: -1,
-                  right: -1,
-                  width: 10,
-                  height: 10,
-                  backgroundColor: '#00C194',
-                  borderRadius: '50%',
-                  border: '2px solid white'
-                }}></span>
+                <span className="connection-status connected" style={{ position: 'absolute', bottom: -2, right: -2, width: 12, height: 12, backgroundColor: '#00C194', borderRadius: '50%', border: '2px solid white', boxSizing: 'border-box' }}></span>
               </button>
             </div>
             <div className="header-right" style={{ display: 'flex', gap: '12px' }}>
-              <button className="figma-header-btn" style={{ background: 'none', border: 'none', fontSize: 20, color: '#00C194' }}>
+              <button style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#00C194', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
                 <IoSearch />
               </button>
-              <button className="figma-header-btn" style={{ background: 'none', border: 'none', fontSize: 20, color: '#00C194' }}>
+              <button style={{ background: 'white', border: '1px solid #E5E7EB', borderRadius: '50%', width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, color: '#00C194', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', cursor: 'pointer' }}>
                 <IoOptionsOutline />
               </button>
             </div>
@@ -430,13 +418,30 @@ const ProfileModal = ({ onClose }) => {
         </div>
 
         <div className="profile-figma-body">
-          {/* Location Toggle (Visual UI only since no state exists yet, or you can add one) */}
-          <div className="profile-figma-toggle-row">
-            <span className="profile-figma-label-small">位置情報</span>
-            <label className="toggle-switch">
-              <input type="checkbox" defaultChecked />
-              <span className="slider round"></span>
-            </label>
+          {/* Location Toggle exactly matching Figma */}
+          <div className="profile-figma-location-toggle-row">
+            <span className="profile-figma-location-label" style={{ fontWeight: 600, fontSize: '14px', marginRight: '8px' }}>位置情報</span>
+            <div className={`figma-location-pill active`} style={{
+              background: '#00C194',
+              borderRadius: '20px',
+              padding: '2px 3px 2px 10px',
+              display: 'flex',
+              alignItems: 'center',
+              color: 'white',
+              fontSize: '12px',
+              fontWeight: 'bold',
+              gap: '6px',
+              cursor: 'pointer'
+            }}>
+              <span>ON</span>
+              <div style={{
+                width: '20px',
+                height: '20px',
+                background: 'white',
+                borderRadius: '50%',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+              }}></div>
+            </div>
           </div>
 
           {/* Display Name Input */}
@@ -493,7 +498,7 @@ const ProfileModal = ({ onClose }) => {
                     {currentUser?.birth_year ? `${currentUser.birth_year}年` : "未設定"}
                   </div>
                 )}
-                <MdDateRange className="input-right-icon" />
+                <MdOutlineDateRange className="input-right-icon" />
               </div>
             </div>
 
@@ -535,10 +540,10 @@ const ProfileModal = ({ onClose }) => {
                   onClick={() => isEditing && toggleReason(r.value)}
                   disabled={!isEditing}
                 >
-                  <div className="reason-icon-wrapper">
-                    {r.emoji}
+                  <div className="profile-figma-reason-icon-wrapper">
+                    <span className="profile-figma-reason-icon">{r.emoji}</span>
+                    <span className="profile-figma-reason-label">{r.label}</span>
                   </div>
-                  <span className="reason-label">{r.label}</span>
                 </button>
               );
             })}
@@ -562,14 +567,31 @@ const ProfileModal = ({ onClose }) => {
           </div>
 
           {/* Album Section */}
-          <div className="profile-figma-album-header">
-            <span className="profile-figma-label-bold">アルバム（最大5枚）</span>
-            <div className="profile-figma-toggle-row-inline">
-              <span className="profile-figma-label-small">アルバムを隠す</span>
-              <label className="toggle-switch small">
-                <input type="checkbox" />
-                <span className="slider round"></span>
-              </label>
+          <div className="profile-figma-album-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '30px', marginBottom: '10px' }}>
+            <span className="profile-figma-label-bold" style={{ fontWeight: 'bold', fontSize: '14px' }}>アルバム（最大5枚）</span>
+            <div className="profile-figma-toggle-row-inline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="profile-figma-label-small" style={{ fontSize: '12px' }}>アルバムを隠す</span>
+              <div className={`figma-location-pill active`} style={{
+                background: '#00C194',
+                borderRadius: '20px',
+                padding: '2px 3px 2px 10px',
+                display: 'flex',
+                alignItems: 'center',
+                color: 'white',
+                fontSize: '10px',
+                fontWeight: 'bold',
+                gap: '6px',
+                cursor: 'pointer'
+              }}>
+                <span>ON</span>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  background: 'white',
+                  borderRadius: '50%',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                }}></div>
+              </div>
             </div>
           </div>
 

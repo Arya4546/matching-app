@@ -883,9 +883,7 @@ const MapView = () => {
                 <span
                   className={`connection-status ${connected ? "connected" : "disconnected"
                     }`}
-                >
-                  <span className="status-indicator"></span>
-                </span>
+                ></span>
               </motion.button>
             </div>
 
@@ -929,26 +927,11 @@ const MapView = () => {
         />
 
         <motion.button
-          className="figma-recenter-btn"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={handleLocationRefresh}
-          title={"\u73fe\u5728\u5730\u306b\u623b\u308b"}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z" fill="currentColor" />
-          </svg>
-        </motion.button>
-
-        <motion.button
           className="figma-zoom-btn"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          onClick={() => {
-            // Optional: add actual zoom logic here if needed
-            // For now, it just matches the figma visual
-          }}
-          title={"\u691c\u7d22"}
+          onClick={handleLocationRefresh}
+          title={"現在地に戻る・ズーム"}
         >
           <IoSearch />
           <span className="zoom-plus-mini">+</span>

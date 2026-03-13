@@ -2,9 +2,10 @@ import { RiStarSmileFill } from "react-icons/ri";
 import { MdOutlineCancel } from "react-icons/md";
 import { RiSendPlaneFill } from "react-icons/ri";
 import { IoMdWalk } from "react-icons/io";
-import { MdLunchDining } from "react-icons/md";
+import { MdLunchDining, MdEmergency, MdOutlineBento } from "react-icons/md";
 import { FaHeart } from "react-icons/fa";
-import { MdEmergency } from "react-icons/md";
+import { FiHeart, FiBell } from "react-icons/fi";
+import { IoWalkOutline } from "react-icons/io5";
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, Users, User } from 'lucide-react';
@@ -53,10 +54,10 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
   const modalRef = useRef(null);
 
   const MEETING_REASONS = [
-    { value: "walk", label: "散歩", emoji: <IoMdWalk />, icon: "walk", color: "#4CAF50" },
-    { value: "lunch", label: "食事", emoji: <MdLunchDining />, icon: "lunch", color: "#FF6B35" },
-    { value: "meeting", label: "出会い", emoji: <FaHeart />, icon: "meeting", color: "#E91E63" },
-    { value: "urgent", label: "至急", emoji: <MdEmergency />, icon: "urgent", color: "#F44336" },
+    { value: "walk", label: "散歩", emoji: <IoWalkOutline />, icon: "walk", color: "#4CAF50" },
+    { value: "lunch", label: "食事", emoji: <MdOutlineBento />, icon: "lunch", color: "#FF6B35" },
+    { value: "meeting", label: "出会い", emoji: <FiHeart />, icon: "meeting", color: "#E91E63" },
+    { value: "urgent", label: "緊急", emoji: <FiBell />, icon: "urgent", color: "#F44336" },
   ];
   const getAgeFromBirthYear = () => {
     try {
