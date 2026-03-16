@@ -16,6 +16,19 @@ import { userAPI } from "../../services/api";
 import "../../styles/Modal.css";
 import "../../styles/ProfileFigma.css";
 
+const SandwichIcon = () => (
+  <svg width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 10.5C5 10 9 8.5 14 8.5C18 8.5 20.5 9.5 21 10C21.5 10.5 21 11.5 20.5 12" />
+    <path d="M3.5 10.5C3.5 10.5 8 13.5 12 15C16 13.5 20.5 11.5 20.5 11.5" />
+    <path d="M4 12C4 12 4.5 13.5 5.5 13.5C6.5 13.5 7.5 12.5 8.5 13.5C9.5 14.5 10 14 11 15" />
+    <path d="M4 12.5V14C4 14 8 16 12 17.5C16 16 20 14 20 14V12.5" />
+    <path d="M20 12C20 12 19 13.5 18 13.5C17 13.5 16 12.5 15 13" />
+    <path d="M5.5 14.5C5.5 14.5 6 15.5 7 15.5C8 15.5 9 14.5 10 15.5" />
+    <path d="M19 14C19 14 18 15 17 15C16 15 15 14.5 14 15.5" />
+    <path d="M11 8.5L11 9" />
+  </svg>
+);
+
 const ProfileModal = ({ onClose }) => {
   const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
@@ -104,7 +117,8 @@ const ProfileModal = ({ onClose }) => {
   };
 
   const handleLogout = () => {
-    navigate("/map");
+    logout();
+    navigate("/login");
     onClose();
   };
 
@@ -263,7 +277,7 @@ const ProfileModal = ({ onClose }) => {
 
   const MEETING_REASONS = [
     { value: "meeting", label: "出会い", emoji: <FiHeart />, icon: "meeting", color: "#00C194" },
-    { value: "lunch", label: "食事", emoji: <MdOutlineBento />, icon: "lunch", color: "#00C194" },
+    { value: "lunch", label: "食事", emoji: <SandwichIcon />, icon: "lunch", color: "#00C194" },
     { value: "walk", label: "散歩", emoji: <IoWalkOutline />, icon: "walk", color: "#00C194" },
     { value: "urgent", label: "緊急", emoji: <FiBell />, icon: "urgent", color: "#00C194" },
   ];
@@ -635,6 +649,27 @@ const ProfileModal = ({ onClose }) => {
               </>
             )}
           </div>
+
+          {!isEditing && (
+            <div style={{ marginTop: '40px', marginBottom: '40px', display: 'flex', justifyContent: 'center' }}>
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: '#ff4b4b',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '24px',
+                  padding: '12px 32px',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(255, 75, 75, 0.3)'
+                }}
+              >
+                ログアウト
+              </button>
+            </div>
+          )}
 
           <AnimatePresence>
             {showSaveModal && (

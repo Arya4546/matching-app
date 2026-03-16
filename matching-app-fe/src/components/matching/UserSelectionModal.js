@@ -17,6 +17,19 @@ import ApproachLoading from '../map/ApproachLoading';
 import MatchSuccess from './MatchSuccess';
 import '../../styles/UserSelectionModal.css';
 
+const SandwichIcon = () => (
+  <svg width="1.3em" height="1.3em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 10.5C5 10 9 8.5 14 8.5C18 8.5 20.5 9.5 21 10C21.5 10.5 21 11.5 20.5 12" />
+    <path d="M3.5 10.5C3.5 10.5 8 13.5 12 15C16 13.5 20.5 11.5 20.5 11.5" />
+    <path d="M4 12C4 12 4.5 13.5 5.5 13.5C6.5 13.5 7.5 12.5 8.5 13.5C9.5 14.5 10 14 11 15" />
+    <path d="M4 12.5V14C4 14 8 16 12 17.5C16 16 20 14 20 14V12.5" />
+    <path d="M20 12C20 12 19 13.5 18 13.5C17 13.5 16 12.5 15 13" />
+    <path d="M5.5 14.5C5.5 14.5 6 15.5 7 15.5C8 15.5 9 14.5 10 15.5" />
+    <path d="M19 14C19 14 18 15 17 15C16 15 15 14.5 14 15.5" />
+    <path d="M11 8.5L11 9" />
+  </svg>
+);
+
 const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, originalMapState, approachState }) => {
   const { currentLocation } = useLocation();
   const [selectedMeetingReason, setSelectedMeetingReason] = useState('');
@@ -55,7 +68,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
 
   const MEETING_REASONS = [
     { value: "walk", label: "散歩", emoji: <IoWalkOutline />, icon: "walk", color: "#4CAF50" },
-    { value: "lunch", label: "食事", emoji: <MdOutlineBento />, icon: "lunch", color: "#FF6B35" },
+    { value: "lunch", label: "食事", emoji: <SandwichIcon />, icon: "lunch", color: "#FF6B35" },
     { value: "meeting", label: "出会い", emoji: <FiHeart />, icon: "meeting", color: "#E91E63" },
     { value: "urgent", label: "緊急", emoji: <FiBell />, icon: "urgent", color: "#F44336" },
   ];
@@ -976,7 +989,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                       <div className="pill-circle">
                         <span className="pill-icon">{s.emoji}</span>
                       </div>
-                      <span className="pill-label">{s.label === '散歩' ? 'stroll' : s.label === '食事' ? 'meal' : s.label === '出会い' ? 'encounter' : 'urgent'}</span>
+                      <span className="pill-label">{s.label}</span>
                       {isSelected && (
                         <div className="pill-check-badge">
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
@@ -1009,9 +1022,9 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
 
               {/* Bio Section */}
               <div className="bio-section">
-                <span className="bio-label">self-introduction</span>
+                <span className="bio-label">自己紹介</span>
                 <p className="bio-text">
-                  {user.aboutme || user.bio || "As a web freelancer, I strive to create simple and comfortable designs and code every day."}
+                  {user.aboutme || user.bio || "フリーランスです。普段はUI/UXデザインやコーディングをしています。"}
                 </p>
               </div>
 
@@ -1041,7 +1054,7 @@ const UserSelectionModal = ({ user, isOpen, onClose, onSubmit, onCancel, origina
                   disabled={approachState === "loading"}
                 >
                   <RiSendPlaneFill className="cta-plane-icon" />
-                  <span>{approachState === "loading" ? 'loading...' : 'approach'}</span>
+                  <span>{approachState === "loading" ? '送信中...' : 'アプローチする'}</span>
                 </motion.button>
               </div>
             </div>

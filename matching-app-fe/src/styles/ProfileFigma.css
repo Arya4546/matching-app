@@ -85,8 +85,7 @@
 
 .profile-figma-avatar-container {
     position: absolute;
-    bottom: -70px;
-    /* Overlap equally between header and body */
+    bottom: 25px;
     left: 50%;
     transform: translateX(-50%);
     width: 140px;
