@@ -257,6 +257,64 @@ const profileValidation = [
     .withMessage('Each album item must be a valid URL or data URL')
 ];
 
+const seedUsers = async (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    const currentUser = req.user;
+
+    if (!lat || !lng) {
+      return res.status(400).json({ error: 'Current location (lat, lng) is required for seeding' });
+    }
+
+    // Generate 5-10 random users around the current location
+    const genders = ['male', 'female', 'other'];
+    const names = {
+      male: ['田中 健太', '佐藤 翔', '鈴木 一郎', '高橋 雄大', '伊藤 直樹'],
+      female: ['佐藤 花子', '高橋 美咲', '山田 由美', '小林 さくら', '松本 あい'],
+      other: ['ゆう', 'あき', 'りん', 'ひかる', 'なつき']
+    };
+
+    const newUsers = [];
+    for (let i = 0; i < 10; i++) {
+      const gender = genders[Math.floor(Math.random() * genders.length)];
+      const name = names[gender][Math.floor(Math.random() * names[gender].length)] + (i + 1);
+      
+      // Random offset within ~5km
+      const latOffset = (Math.random() - 0.5) * 0.05;
+      const lngOffset = (Math.random() - 0.5) * 0.05;
+
+      newUsers.push({
+        name,
+        phoneNumber: `+8190${Math.floor(10000000 + Math.random() * 90000000)}`,
+        gender,
+        address: '東京都内のどこか',
+        location: {
+          type: 'Point',
+          coordinates: [parseFloat(lng) + lngOffset, parseFloat(lat) + latOffset]
+        },
+        profilePhoto: `https://randomuser.me/api/portraits/${gender === 'male' ? 'men' : gender === 'female' ? 'women' : 'lego'}/${Math.floor(Math.random() * 99)}.jpg`,
+        bio: `${name}です。よろしくお願いします！`,
+        isOnline: Math.random() > 0.3,
+        isAvailable: true,
+        smsVerified: true,
+        matchCount: Math.floor(Math.random() * 10),
+        actualMeetCount: Math.floor(Math.random() * 5)
+      });
+    }
+
+    await User.insertMany(newUsers);
+
+    res.json({
+      success: true,
+      message: `${newUsers.length} users seeded near your location`,
+      count: newUsers.length
+    });
+  } catch (error) {
+    console.error('Seed users error:', error);
+    res.status(500).json({ error: 'Failed to seed users' });
+  }
+};
+
 module.exports = {
   getNearbyUsers,
   updateLocation,
@@ -265,6 +323,7 @@ module.exports = {
   setOnlineStatus,
   getAvailabilityStatus,
   getAllUsers,
+  seedUsers,
   nearbyUsersValidation,
   locationValidation,
   profileValidation

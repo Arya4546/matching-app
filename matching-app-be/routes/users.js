@@ -8,6 +8,7 @@ const {
   setOnlineStatus,
   getAvailabilityStatus,
   getAllUsers,
+  seedUsers,
   nearbyUsersValidation,
   locationValidation,
   profileValidation
@@ -23,5 +24,6 @@ router.put('/profile', auth, profileValidation, updateProfile);
 router.post('/update-profile', auth, profileValidation, updateProfile);
 router.get('/status', auth, getAvailabilityStatus);
 router.post('/status', auth, setOnlineStatus);
+router.post('/seed', auth, seedUsers);
 
 module.exports = router;

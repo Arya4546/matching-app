@@ -64,7 +64,7 @@ export const userAPI = {
   setAvailabilityStatus: (isAvailable) => api.post('/users/status', { isAvailable }),
   // Backward-compatible alias used in older code paths
   setOnlineStatus: (isAvailable) => api.post('/users/status', { isAvailable }),
-  seedUsers: () => api.post('/seed-users'),
+  seedUsers: (lat, lng) => api.post('/users/seed', { lat, lng }),
 };
 
 export const matchingAPI = {

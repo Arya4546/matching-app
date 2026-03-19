@@ -171,8 +171,7 @@ export const LocationProvider = ({ children }) => {
 
   const seedUsers = async () => {
     try {
-      setLoading(true);
-      const response = await userAPI.seedUsers();
+      const response = await userAPI.seedUsers(currentLocation.lat, currentLocation.lng);
       toast.success('テストユーザーが正常に作成されました！');
       return response.data;
     } catch (error) {

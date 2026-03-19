@@ -46,6 +46,7 @@ const ProfileModal = ({ onClose }) => {
     gender: user?.gender || "male",
     birth_year: user?.birth_year || "",
     status: Array.isArray(user?.status) ? user.status : (user?.status ? [user.status] : []),
+    isAvailable: user?.isAvailable !== false,
     profilePhoto: user?.profilePhoto || "",
     albumPhotos: [
       ...(user?.album || []),
@@ -103,6 +104,7 @@ const ProfileModal = ({ onClose }) => {
         gender: currentUser.gender || "male",
         birth_year: currentUser.birth_year || "",
         status: Array.isArray(currentUser.status) ? currentUser.status : (currentUser.status ? [currentUser.status] : []),
+        isAvailable: currentUser.isAvailable !== false,
         profilePhoto: currentUser.profilePhoto || "",
         albumPhotos: [
           ...(currentUser.album || []),
@@ -194,7 +196,8 @@ const ProfileModal = ({ onClose }) => {
         status: editData.status,
         aboutme: editData.bio, // aboutmeとしてbioを使用
         album: editData.albumPhotos.filter(photo => photo && photo !== editData.profilePhoto).slice(0, 5), // プロフィール写真を除外、最大5枚
-        profilePhoto: editData.profilePhoto
+        profilePhoto: editData.profilePhoto,
+        isAvailable: editData.isAvailable
       };
 
       console.log('Sending profile update request:', requestData);
@@ -240,6 +243,7 @@ const ProfileModal = ({ onClose }) => {
       gender: currentUser?.gender || "male",
       birth_year: currentUser?.birth_year || "",
       status: Array.isArray(currentUser?.status) ? currentUser.status : (currentUser?.status ? [currentUser.status] : []),
+      isAvailable: currentUser?.isAvailable !== false,
       profilePhoto: currentUser?.profilePhoto || "",
       albumPhotos: [
         ...(currentUser?.album || []),
@@ -356,7 +360,9 @@ const ProfileModal = ({ onClose }) => {
                   alt="Profile"
                   style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover' }}
                 />
-                <span className="connection-status connected" style={{ position: 'absolute', bottom: -2, right: -2, width: 12, height: 12, backgroundColor: '#00C194', borderRadius: '50%', border: '2px solid white', boxSizing: 'border-box' }}></span>
+                {(isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) && (
+                  <span className="connection-status connected" style={{ position: 'absolute', bottom: -2, right: -2, width: 12, height: 12, backgroundColor: '#00C194', borderRadius: '50%', border: '2px solid white', boxSizing: 'border-box' }}></span>
+                )}
               </button>
             </div>
             <div className="header-right" style={{ display: 'flex', gap: '12px' }}>
@@ -401,6 +407,9 @@ const ProfileModal = ({ onClose }) => {
               alt="プロフィール"
               className="profile-figma-avatar"
             />
+            {(isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) && (
+              <span className="connection-status connected" style={{ position: 'absolute', top: '10px', left: '10px', width: 18, height: 18, backgroundColor: '#00C194', borderRadius: '50%', border: '3px solid white', boxSizing: 'border-box', zIndex: 2 }}></span>
+            )}
             {isEditing && (
               <label className="profile-figma-camera">
                 <input
@@ -435,25 +444,46 @@ const ProfileModal = ({ onClose }) => {
           {/* Location Toggle exactly matching Figma */}
           <div className="profile-figma-location-toggle-row">
             <span className="profile-figma-location-label" style={{ fontWeight: 600, fontSize: '14px', marginRight: '8px' }}>位置情報</span>
-            <div className={`figma-location-pill active`} style={{
-              background: '#00C194',
-              borderRadius: '20px',
-              padding: '2px 3px 2px 10px',
-              display: 'flex',
-              alignItems: 'center',
-              color: 'white',
-              fontSize: '12px',
-              fontWeight: 'bold',
-              gap: '6px',
-              cursor: 'pointer'
-            }}>
-              <span>ON</span>
+            <div 
+              className={`figma-location-pill ${(isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) ? 'active' : ''}`} 
+              onClick={() => {
+                if (isEditing) {
+                  handleEditChange('isAvailable', !editData.isAvailable);
+                } else {
+                  // Direct toggle when not in edit mode
+                  const nextStatus = !(currentUser?.isAvailable !== false);
+                  userAPI.setAvailabilityStatus(nextStatus).then(res => {
+                    updateUser({ isAvailable: res.data.isAvailable });
+                    setCurrentUser(prev => ({ ...prev, isAvailable: res.data.isAvailable }));
+                  }).catch(err => {
+                    console.error('Failed to toggle availability:', err);
+                  });
+                }
+              }}
+              style={{
+                background: (isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) ? '#00C194' : '#E5E7EB',
+                borderRadius: '20px',
+                padding: '2px 3px 2px 10px',
+                display: 'flex',
+                alignItems: 'center',
+                color: 'white',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                gap: '6px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                justifyContent: (isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) ? 'flex-end' : 'flex-start'
+              }}>
+              <span style={{ order: (isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) ? 0 : 1 }}>
+                {(isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) ? 'ON' : 'OFF'}
+              </span>
               <div style={{
                 width: '20px',
                 height: '20px',
                 background: 'white',
                 borderRadius: '50%',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                order: (isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) ? 1 : 0
               }}></div>
             </div>
           </div>
