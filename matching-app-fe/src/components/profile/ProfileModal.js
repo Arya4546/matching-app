@@ -360,9 +360,24 @@ const ProfileModal = ({ onClose }) => {
                   alt="Profile"
                   style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover' }}
                 />
-                {(isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) && (
-                  <span className="connection-status connected" style={{ position: 'absolute', bottom: -2, right: -2, width: 12, height: 12, backgroundColor: '#00C194', borderRadius: '50%', border: '2px solid white', boxSizing: 'border-box' }}></span>
-                )}
+                <span className="connection-status" style={{ 
+                  position: 'absolute', 
+                  bottom: -1, 
+                  right: -1, 
+                  width: 14, 
+                  height: 14, 
+                  backgroundColor: (isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) ? '#00C194' : '#4B5563', 
+                  borderRadius: '50%', 
+                  border: '2px solid white', 
+                  boxSizing: 'border-box',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {!(isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) && (
+                    <div style={{ width: 4, height: 4, backgroundColor: '#9CA3AF', borderRadius: '50%' }}></div>
+                  )}
+                </span>
               </button>
             </div>
             <div className="header-right" style={{ display: 'flex', gap: '12px' }}>
@@ -407,9 +422,25 @@ const ProfileModal = ({ onClose }) => {
               alt="プロフィール"
               className="profile-figma-avatar"
             />
-            {(isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) && (
-              <span className="connection-status connected" style={{ position: 'absolute', top: '10px', left: '10px', width: 18, height: 18, backgroundColor: '#00C194', borderRadius: '50%', border: '3px solid white', boxSizing: 'border-box', zIndex: 2 }}></span>
-            )}
+            <span className="connection-status" style={{ 
+              position: 'absolute', 
+              top: '10px', 
+              left: '10px', 
+              width: 20, 
+              height: 20, 
+              backgroundColor: (isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) ? '#00C194' : '#4B5563', 
+              borderRadius: '50%', 
+              border: '3px solid white', 
+              boxSizing: 'border-box', 
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              {!(isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) && (
+                <div style={{ width: 6, height: 6, backgroundColor: '#9CA3AF', borderRadius: '50%' }}></div>
+              )}
+            </span>
             {isEditing && (
               <label className="profile-figma-camera">
                 <input
