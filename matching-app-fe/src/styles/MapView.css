@@ -106,6 +106,41 @@
   background-color: #ea4335;
 }
 
+.availability-status-dot {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.availability-status-dot.is-online {
+  background-color: #00c194;
+}
+
+.availability-status-dot.is-offline {
+  background-color: #4b5563;
+}
+
+.availability-status-dot-inner {
+  border-radius: 50%;
+  background-color: #9ca3af;
+}
+
+.availability-status-dot--map {
+  bottom: -1px;
+  right: -1px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #fff;
+}
+
+.availability-status-dot--map .availability-status-dot-inner {
+  width: 4px;
+  height: 4px;
+}
+
 .header-right {
   display: flex;
   align-items: center;
@@ -967,6 +1002,48 @@
   }
 }
 
+@media (min-width: 1024px) {
+  .map-container {
+    padding: 20px;
+    background: linear-gradient(140deg, #f2f7f5 0%, #eaf4f0 100%);
+  }
+
+  .map-header {
+    top: 18px;
+    left: 20px;
+    right: 20px;
+    border-radius: 18px;
+    padding: 12px 20px;
+    padding-top: 12px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+  }
+
+  .map-content {
+    margin-top: 86px;
+    border-radius: 28px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 20px 42px rgba(15, 23, 42, 0.14);
+  }
+
+  .google-map {
+    border-radius: 28px;
+  }
+
+  .figma-zoom-btn {
+    bottom: 34px;
+    right: 34px;
+    width: 60px;
+    height: 60px;
+    font-size: 26px;
+  }
+
+  .pending-state-panel {
+    top: 108px;
+    right: 34px;
+    max-width: 360px;
+  }
+}
+
 .figma-header-btn {
   background: white;
   border: 1px solid #2ABB7F;
@@ -1162,5 +1239,18 @@
     max-height: calc(100vh - 100px);
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  }
+}
+
+@media (min-width: 1024px) {
+  .menu-btn,
+  .profile-avatar,
+  .figma-header-btn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .figma-header-btn {
+    font-size: 22px;
   }
 }

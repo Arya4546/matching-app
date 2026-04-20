@@ -105,6 +105,55 @@
     border: 4px solid white;
 }
 
+.availability-status-dot {
+    position: absolute;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.availability-status-dot.is-online {
+    background-color: #00c194;
+}
+
+.availability-status-dot.is-offline {
+    background-color: #4b5563;
+}
+
+.availability-status-dot-inner {
+    border-radius: 50%;
+    background-color: #9ca3af;
+}
+
+.availability-status-dot--navbar {
+    bottom: -1px;
+    right: -1px;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #fff;
+}
+
+.availability-status-dot--navbar .availability-status-dot-inner {
+    width: 4px;
+    height: 4px;
+}
+
+.availability-status-dot--hero {
+    top: 10px;
+    left: 10px;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #fff;
+    z-index: 2;
+}
+
+.availability-status-dot--hero .availability-status-dot-inner {
+    width: 6px;
+    height: 6px;
+}
+
 .profile-figma-camera {
     position: absolute;
     top: 10px;
@@ -551,4 +600,68 @@ input:checked+.slider:before {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+@media (min-width: 1024px) {
+    .profile-figma-overlay {
+        background: linear-gradient(135deg, #eef5f2 0%, #f7fbf9 100%);
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 24px;
+        box-sizing: border-box;
+    }
+
+    .profile-modal-fullscreen {
+        width: min(980px, 100%);
+        min-height: calc(100vh - 48px);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+    }
+
+    .profile-figma-navbar-global {
+        padding: 10px 24px;
+    }
+
+    .profile-figma-toolbar {
+        padding: 10px 24px;
+    }
+
+    .profile-figma-header {
+        height: 200px;
+        padding-top: 28px;
+    }
+
+    .profile-figma-avatar-container {
+        width: 168px;
+        height: 168px;
+        bottom: 30px;
+    }
+
+    .profile-figma-stats-left {
+        left: 72px;
+        bottom: -24px;
+    }
+
+    .profile-figma-stats-right {
+        right: 72px;
+        bottom: -24px;
+    }
+
+    .profile-figma-body {
+        width: min(860px, 100%);
+        margin: 0 auto;
+        padding: 94px 36px 56px;
+    }
+
+    .profile-figma-reasons-row {
+        justify-content: center;
+        gap: 28px;
+    }
+
+    .album-item {
+        width: 116px;
+        height: 116px;
+    }
 }

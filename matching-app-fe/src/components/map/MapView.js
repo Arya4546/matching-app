@@ -40,7 +40,6 @@ const MapView = () => {
     calculateDistance,
   } = useLocation();
   const {
-    connected,
     onlineUsers,
     matchRequests,
     outgoingMatchRequests,
@@ -850,6 +849,7 @@ const MapView = () => {
         ? "\u8f9e\u9000\u3055\u308c\u307e\u3057\u305f"
         : "\u66f4\u65b0\u6e08\u307f"
     : null;
+  const isCurrentUserAvailable = user?.isAvailable !== false;
 
   // Check if it's desktop/PC view
   const isDesktop = typeof window !== 'undefined' ? window.innerWidth >= 1024 : false;
@@ -881,9 +881,10 @@ const MapView = () => {
                   className="profile-avatar"
                 />
                 <span
-                  className={`connection-status ${connected ? "connected" : "disconnected"
-                    }`}
-                ></span>
+                  className={`availability-status-dot availability-status-dot--map ${isCurrentUserAvailable ? "is-online" : "is-offline"}`}
+                >
+                  {!isCurrentUserAvailable && <span className="availability-status-dot-inner"></span>}
+                </span>
               </motion.button>
             </div>
 

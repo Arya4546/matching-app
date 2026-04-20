@@ -321,6 +321,9 @@ const ProfileModal = ({ onClose }) => {
       ? (editData.profilePhoto || currentUser?.profilePhoto)
       : currentUser?.profilePhoto
   ) || "https://randomuser.me/api/portraits/men/32.jpg";
+  const isCurrentUserAvailable = isEditing
+    ? editData.isAvailable
+    : currentUser?.isAvailable !== false;
 
   return (
     <motion.div
@@ -360,23 +363,10 @@ const ProfileModal = ({ onClose }) => {
                   alt="Profile"
                   style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover' }}
                 />
-                <span className="connection-status" style={{ 
-                  position: 'absolute', 
-                  bottom: -1, 
-                  right: -1, 
-                  width: 14, 
-                  height: 14, 
-                  backgroundColor: (isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) ? '#00C194' : '#4B5563', 
-                  borderRadius: '50%', 
-                  border: '2px solid white', 
-                  boxSizing: 'border-box',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  {!(isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) && (
-                    <div style={{ width: 4, height: 4, backgroundColor: '#9CA3AF', borderRadius: '50%' }}></div>
-                  )}
+                <span
+                  className={`availability-status-dot availability-status-dot--navbar ${isCurrentUserAvailable ? "is-online" : "is-offline"}`}
+                >
+                  {!isCurrentUserAvailable && <span className="availability-status-dot-inner"></span>}
                 </span>
               </button>
             </div>
@@ -422,24 +412,10 @@ const ProfileModal = ({ onClose }) => {
               alt="プロフィール"
               className="profile-figma-avatar"
             />
-            <span className="connection-status" style={{ 
-              position: 'absolute', 
-              top: '10px', 
-              left: '10px', 
-              width: 20, 
-              height: 20, 
-              backgroundColor: (isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) ? '#00C194' : '#4B5563', 
-              borderRadius: '50%', 
-              border: '3px solid white', 
-              boxSizing: 'border-box', 
-              zIndex: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              {!(isEditing ? editData.isAvailable : currentUser?.isAvailable !== false) && (
-                <div style={{ width: 6, height: 6, backgroundColor: '#9CA3AF', borderRadius: '50%' }}></div>
-              )}
+            <span
+              className={`availability-status-dot availability-status-dot--hero ${isCurrentUserAvailable ? "is-online" : "is-offline"}`}
+            >
+              {!isCurrentUserAvailable && <span className="availability-status-dot-inner"></span>}
             </span>
             {isEditing && (
               <label className="profile-figma-camera">
